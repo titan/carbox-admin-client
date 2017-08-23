@@ -15,7 +15,12 @@ class SignInException implements Exception {
 
 Future signIn(String account, String password) {
   var client = createHttpClient();
-  return client.post("${server}sessions", headers: {"content-type": "application/json"}, body: "{ \"account\": \"$account\", \"password\": \"$password\"}")
+  return client
+      .post(
+        "${server}sessions",
+        headers: {"content-type": "application/json"},
+        body: "{ \"account\": \"$account\", \"password\": \"$password\"}",
+      )
       .then(checkStatus)
       .then(parseJsonMap)
       .then((Map json) {

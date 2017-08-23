@@ -3,7 +3,7 @@ import "dart:convert";
 import 'package:http/http.dart' as http;
 import 'package:adminclient/model/session.dart';
 
-const server = "http://192.168.42.21:8888/";
+const server = "http://59.110.16.108:8888/";
 
 class TokenException implements Exception {
   String _message;
@@ -69,13 +69,16 @@ Future checkSessionThenGet(Session session, http.Client client, String url) {
 }
 
 Future checkSessionThenPost(
-    Session session, http.Client client, String url, Map<String, String> body) {
+    Session session, http.Client client, String url, String body) {
   if ((new DateTime.now().millisecondsSinceEpoch + 300000) <
       session.expires_at.millisecondsSinceEpoch) {
     return client.post(url,
-        headers: {"Token": session.access_token}, body: body);
+        headers: {
+          "content-type": "application/json",
+          "Token": session.access_token
+        },
+        body: body);
   } else {
-    // try to refresh tokens
     return client
         .put("${server}sessions", body: {
           "access-token": session.access_token,
@@ -96,7 +99,7 @@ Future checkSessionThenPost(
 }
 
 Future checkSessionThenPut(
-    Session session, http.Client client, String url, Map<String, String> body) {
+    Session session, http.Client client, String url, String body) {
   if ((new DateTime.now().millisecondsSinceEpoch + 300000) <
       session.expires_at.millisecondsSinceEpoch) {
     return client.put(url,
@@ -149,12 +152,10 @@ Future checkSessionThenOptions(
   }
 }
 
-Future checkSessionThenDelete(
-    Session session, http.Client client, String url) {
+Future checkSessionThenDelete(Session session, http.Client client, String url) {
   if ((new DateTime.now().millisecondsSinceEpoch + 300000) <
       session.expires_at.millisecondsSinceEpoch) {
-    return client.delete(url,
-        headers: {"Token": session.access_token});
+    return client.delete(url, headers: {"Token": session.access_token});
   } else {
     // try to refresh tokens
     return client
@@ -170,8 +171,7 @@ Future checkSessionThenDelete(
           session.expires_at = new DateTime.fromMillisecondsSinceEpoch(
               new DateTime.now().millisecondsSinceEpoch +
                   json["expires_in"] * 1000);
-          return client.delete(url,
-              headers: {"Token": session.access_token});
+          return client.delete(url, headers: {"Token": session.access_token});
         });
   }
 }

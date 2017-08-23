@@ -22,8 +22,13 @@ class _HomePageState extends State<HomePage> {
     new HomeMenu(
         title: '设备管理',
         color: new Color(0xffffffff),
-        emoji: '\u{1F4E2}',
+        emoji: '\u{1F4BB}',
         route: "/devices"),
+    new HomeMenu(
+        title: '升级管理',
+        color: new Color(0xffffffff),
+        emoji: '\u{2708}',
+        route: "/upgrades"),
   ];
 
   @override
@@ -40,11 +45,11 @@ class _HomePageState extends State<HomePage> {
   Widget build(BuildContext context) {
     return new Scaffold(
       appBar: new AppBar(
-        // Here we take the value from the MyHomePage object that
-        // was created by the App.build method, and use it to set
-        // our appbar title.
-        title: new Text(widget.title),
-      ),
+          // Here we take the value from the MyHomePage object that
+          // was created by the App.build method, and use it to set
+          // our appbar title.
+          title: new Text(widget.title),
+          centerTitle: true),
       body: new Column(
         children: <Widget>[
           new Expanded(
@@ -71,7 +76,7 @@ class _HomePageState extends State<HomePage> {
                             menu.emoji,
                             style: new TextStyle(
                               fontFamily: 'EmojiSymbols',
-                              fontSize: 30.0,
+                              fontSize: 50.0,
                               color: Colors.black,
                             ),
                           ),
