@@ -5,7 +5,6 @@ abstract class Action {
   String meta;
 }
 
-
 class AppState {
   Map<String, Object> states;
   AppState() {
