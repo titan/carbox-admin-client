@@ -38,6 +38,22 @@ class _UpgradesPageState extends State<UpgradesPage>
     savePutUpgrade(widget.store, upgrade);
   }
 
+  void _reload(Store store) {
+    setState(() {
+      index = _controller.index;
+      if (index == 0) {
+        fetch1Upgrades(widget.store, 0);
+      } else if (index == 1) {
+        fetch2Upgrades(widget.store, 0);
+      } else if (index == 2) {
+        fetch3Upgrades(widget.store, 0);
+      } else {
+        fetch4Upgrades(widget.store, 0);
+      }
+    });
+  }
+
+  bool reload = false;
   TabController _controller;
   int index = 0;
   void _handleTabSelection() {
@@ -113,22 +129,38 @@ class _UpgradesPageState extends State<UpgradesPage>
     final ThemeData theme = Theme.of(context);
     return new Scaffold(
       appBar: new AppBar(
-          title: new Text(
-              widget.store.state.getState(upgradekey)["fetchupgrades"].error ==
-                      null
-                  ? "设备管理"
-                  : "错误提示"),
-          centerTitle: true,
-          bottom: new TabBar(
-            // 控件的选择和动画状态
-            // 标签栏是否可以水平滚动
-            controller: _controller,
-            isScrollable: true,
-            // 标签控件的列表
-            tabs: _allPages
-                .map((_Page page) => new Tab(text: page.text))
-                .toList(),
-          )),
+        title: new Text(
+            widget.store.state.getState(upgradekey)["fetchupgrades"].error ==
+                    null
+                ? "设备管理"
+                : "错误提示"),
+        centerTitle: true,
+        bottom: new TabBar(
+          // 控件的选择和动画状态
+          // 标签栏是否可以水平滚动
+          controller: _controller,
+          isScrollable: true,
+          // 标签控件的列表
+          tabs:
+              _allPages.map((_Page page) => new Tab(text: page.text)).toList(),
+        ),
+        actions: <Widget>[
+          new PopupMenuButton<BottomNavigationBarType>(
+            onSelected: (BottomNavigationBarType value) {
+              if (value == BottomNavigationBarType.fixed) {
+                _reload(widget.store);
+              }
+            },
+            itemBuilder: (BuildContext context) =>
+                <PopupMenuItem<BottomNavigationBarType>>[
+                  const PopupMenuItem<BottomNavigationBarType>(
+                    value: BottomNavigationBarType.fixed,
+                    child: const Text('刷新'),
+                  ),
+                ],
+          )
+        ],
+      ),
       body: widget.store.state.getState(upgradekey)["fetchupgrades"].loading
           ? popPage()
           : widget.store.state.getState(upgradekey)["fetchupgrades"].error ==
@@ -147,9 +179,7 @@ class _UpgradesPageState extends State<UpgradesPage>
                                 return new Container(
                                   padding: const EdgeInsets.only(top: 0.0),
                                   child: new ListTile(
-                                    title: new Text(
-                                        // "状态：" + upgrade.state.toString(),
-                                        "状态：" + page.text,
+                                    title: new Text("状态：" + page.text,
                                         style: new TextStyle(fontSize: 18.0)),
                                     subtitle: new Text(
                                         upgrade.type +
@@ -157,15 +187,18 @@ class _UpgradesPageState extends State<UpgradesPage>
                                             upgrade.version.toString() +
                                             ".0.0",
                                         style: new TextStyle(fontSize: 18.0)),
-                                    trailing: new IconButton(
-                                      icon: const Icon(Icons.mode_edit),
-                                      color: Theme.of(context).primaryColor,
-                                      onPressed: () {
-                                        _savePutUpgrade(context, upgrade);
-                                        Navigator.pushNamed(
-                                            context, "/upgradePost");
-                                      },
-                                    ),
+                                    trailing: index == 3
+                                        ? null
+                                        : new IconButton(
+                                            icon: const Icon(Icons.mode_edit),
+                                            color:
+                                                Theme.of(context).primaryColor,
+                                            onPressed: () {
+                                              _savePutUpgrade(context, upgrade);
+                                              Navigator.pushNamed(
+                                                  context, "/upgradePost");
+                                            },
+                                          ),
                                     onTap: () {
                                       _saveSelectUpgrade(context, upgrade);
                                       Navigator.pushNamed(

@@ -36,6 +36,7 @@ Future<CollectionResponse> fetchgrades(
       upgrade.version = d["version"];
       upgrade.id = d["id"];
       upgrade.type = d["type"];
+      upgrade.constraint = d["constraint"];
       collections.data.add(upgrade);
     }
     return collections;
@@ -61,6 +62,7 @@ Future<CollectionResponse> fetchgrade({Session session, int id}) {
       upgrade.version = d["version"];
       upgrade.id = d["id"];
       upgrade.type = d["type"];
+      upgrade.constraint = d["constraint"];
       collections.data.add(upgrade);
     }
     return collections;
@@ -75,6 +77,7 @@ Future postUpgrade({
   int systemBoard,
   int lockBoard,
   int version,
+  int constraint,
 }) {
   var client = createHttpClient();
   var body = {
@@ -83,7 +86,8 @@ Future postUpgrade({
     "url": url,
     "type": type,
     "version": version,
-    "state": state
+    "state": state,
+    "constraint": constraint,
   };
   return checkSessionThenPost(
           session, client, "${server}upgrades", JSON.encode(body))
@@ -104,6 +108,7 @@ Future putUpgrade({
   int lockBoard,
   int id,
   int version,
+  int constraint,
 }) {
   var client = createHttpClient();
   var body = {
@@ -114,6 +119,7 @@ Future putUpgrade({
     "id": id,
     "version": version,
     "state": state,
+    "constraint": constraint,
   };
   return checkSessionThenPut(
           session, client, "${server}upgrades/${id}", JSON.encode(body))
@@ -132,9 +138,10 @@ Future deleteUpgrade({
   var client = createHttpClient();
   return checkSessionThenDelete(session, client, "${server}upgrades/${id}")
       .then(checkStatus)
-      .then(parseJsonMap)
-      .then((Map json) {
-    var data = json;
-    return data;
+      // .then(parseJsonMap)
+      .then((data) {
+    // var data = json;
+    // return data;
+    return;
   }).whenComplete(client.close);
 }

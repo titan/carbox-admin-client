@@ -19,6 +19,7 @@ class UpgradeState {
   Upgrade put = null;
   bool loading = false;
   bool nomore = false;
+  bool reload = false;
   bool postend = false;
   bool putend = false;
   bool deleted = false;
@@ -44,7 +45,6 @@ class UpgradeActionPayload {
   final Upgrade upgrade;
   UpgradeActionPayload({
     this.tag = "fetchupgrades",
-    // this.key,
     this.id = 0,
     this.offset = 0,
     this.limit = 20,
@@ -80,6 +80,7 @@ class UpgradeReducer extends Reducer<Map<String, UpgradeState>, UpgradeAction> {
     switch (action.type) {
       case 'FETCH_UPGRADES_REQUEST':
         state.loading = true;
+        state.reload = false;
         return states;
       case 'FETCH_UPGRADES_SUCCESS':
         var response = action.payload.response;
@@ -106,7 +107,7 @@ class UpgradeReducer extends Reducer<Map<String, UpgradeState>, UpgradeAction> {
         state.putWaiting = true;
         return states;
       case 'RELOAD_UPGRADE':
-        state.nomore = false;
+        state.reload = true;
         return states;
       case 'POST_UPGRADE_WAITING_REQUEST':
         state.put = null;
@@ -132,6 +133,7 @@ class UpgradeReducer extends Reducer<Map<String, UpgradeState>, UpgradeAction> {
         res.version = response["version"];
         res.id = response["id"];
         res.type = response["type"];
+        res.constraint = response["constraint"];
         state.loading = false;
         state.postend = true;
         state.selected = res;
@@ -172,6 +174,7 @@ class UpgradeReducer extends Reducer<Map<String, UpgradeState>, UpgradeAction> {
         res.version = response["version"];
         res.id = response["id"];
         res.type = response["type"];
+        res.constraint = response["constraint"];
         state.loading = false;
         state.postend = true;
         state.selected = res;
@@ -194,6 +197,7 @@ class UpgradeReducer extends Reducer<Map<String, UpgradeState>, UpgradeAction> {
         return states;
       case 'DELETE_UPGRADE_FAILED':
         state.loading = false;
+        state.deleted = true;
         state.error = action.payload.error;
         return states;
       default:
@@ -342,6 +346,7 @@ class PostUpgradeEpic extends Epic<AppState, Action> {
                   systemBoard: payload.postWaiting.systemBoard,
                   lockBoard: payload.postWaiting.lockBoard,
                   version: payload.postWaiting.version,
+                  constraint: payload.postWaiting.constraint,
                 )
                 .then((Map<String, dynamic> response) => new UpgradeAction(
                       type: 'POST_UPGRADE_SUCCESS',
@@ -387,6 +392,7 @@ class PutUpgradeEpic extends Epic<AppState, Action> {
                   lockBoard: payload.putWaiting.lockBoard,
                   id: payload.putWaiting.id,
                   version: payload.putWaiting.version,
+                  constraint: payload.putWaiting.constraint,
                 )
                 .then((Map<String, dynamic> response) => new UpgradeAction(
                       type: 'PUT_UPGRADE_SUCCESS',
