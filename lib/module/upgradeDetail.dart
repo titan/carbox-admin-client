@@ -38,10 +38,7 @@ class _UpgradeDetailPageState extends State<UpgradeDetailPage> {
   void initState() {
     super.initState();
     widget.store.onChange.listen((state) {
-      var pop = widget.store.state
-                  .getState(upgradekey)["deleteupgrade"]
-                  .deleted ==
-              true
+      widget.store.state.getState(upgradekey)["deleteupgrade"].deleted == true
           ? widget.store.state.getState(upgradekey)["deleteupgrade"].error !=
                   null
               ? _showMessage(
@@ -79,13 +76,14 @@ class _UpgradeDetailPageState extends State<UpgradeDetailPage> {
       _state = "已发布";
     }
     _detailList = <UpgradeDetail>[
+      new UpgradeDetail(key: "状态", value: _state),
       new UpgradeDetail(key: "编号", value: _selected.id.toString()),
       new UpgradeDetail(key: "应用类型", value: _selected.type),
       new UpgradeDetail(key: "锁控型号", value: _lockBoard),
       new UpgradeDetail(key: "主板型号", value: _systemBoard),
-      new UpgradeDetail(key: "状态", value: _state),
       new UpgradeDetail(key: "下载路径", value: _selected.url),
       new UpgradeDetail(key: "版本号", value: _selected.version.toString()),
+      new UpgradeDetail(key: "最小约束版本号", value: _selected.constraint.toString()),
     ];
   }
 
@@ -96,7 +94,7 @@ class _UpgradeDetailPageState extends State<UpgradeDetailPage> {
           new FlatButton(
               onPressed: () {
                 if (state == true) {
-                  Navigator.pushNamed(context, "/upgrades");
+                  Navigator.popUntil(context, ModalRoute.withName('/upgrades'));
                 } else {
                   Navigator.pop(context);
                 }
@@ -130,61 +128,98 @@ class _UpgradeDetailPageState extends State<UpgradeDetailPage> {
         ),
       );
     }).toList();
-    content.addAll([
-      new Container(
-        padding: const EdgeInsets.only(left: 48.0, right: 48.0),
-        child: new FlatButton(
-          color: Colors.blue[500],
-          textColor: Colors.white,
-          child: new Text(
-            '修改信息',
-            style: new TextStyle(fontSize: 15.0),
-          ),
-          onPressed: () {
-            _savePutUpgrade(context, _selected);
-            Navigator.pushNamed(context, "/upgradePost");
-          },
-        ),
-      ),
-      new Container(
-        padding: const EdgeInsets.only(left: 48.0, right: 48.0, top: 20.0),
-        child: new FlatButton(
-          color:
-              widget.store.state.getState(upgradekey)["deleteupgrade"].loading
-                  ? null
-                  : Colors.blue[500],
-          textColor: Colors.white,
-          child:
-              widget.store.state.getState(upgradekey)["deleteupgrade"].loading
-                  ? new Center(
-                      child: new CircularProgressIndicator(),
-                    )
-                  : new Text(
-                      '删除信息',
-                      style: new TextStyle(fontSize: 15.0),
-                    ),
-          onPressed: () {
-            _deleteUpgrade(context, _selected);
-          },
-        ),
-      ),
-      new Container(
-        padding: const EdgeInsets.only(left: 48.0, right: 48.0, top: 20.0),
-        child: new FlatButton(
-          color: Colors.blue[500],
-          textColor: Colors.white,
-          child: new Text(
-            '返回列表页',
-            style: new TextStyle(fontSize: 15.0),
-          ),
-          onPressed: () {
-            // _savePutUpgrade(context, _selected);
-            Navigator.pushNamed(context, "/upgrades");
-          },
-        ),
-      ),
-      new Container(child: new SizedBox(height: 28.0)),
-    ]);
+    content.addAll(_selected.state == 15
+        ? [
+            new Container(
+              padding: const EdgeInsets.only(left: 48.0, right: 48.0),
+              child: new FlatButton(
+                color: Colors.blue[500],
+                textColor: Colors.white,
+                child: new Text(
+                  '修改信息',
+                  style: new TextStyle(fontSize: 15.0),
+                ),
+                onPressed: () {
+                  _savePutUpgrade(context, _selected);
+                  Navigator.pushNamed(context, "/upgradePost");
+                },
+              ),
+            ),
+            new Container(
+              padding:
+                  const EdgeInsets.only(left: 48.0, right: 48.0, top: 20.0),
+              child: new FlatButton(
+                color: Colors.blue[500],
+                textColor: Colors.white,
+                child: new Text(
+                  '返回列表页',
+                  style: new TextStyle(fontSize: 15.0),
+                ),
+                onPressed: () {
+                  Navigator.popUntil(context, ModalRoute.withName('/upgrades'));
+                },
+              ),
+            ),
+            new Container(child: new SizedBox(height: 28.0)),
+          ]
+        : [
+            new Container(
+              padding: const EdgeInsets.only(left: 48.0, right: 48.0),
+              child: new FlatButton(
+                color: Colors.blue[500],
+                textColor: Colors.white,
+                child: new Text(
+                  '修改信息',
+                  style: new TextStyle(fontSize: 15.0),
+                ),
+                onPressed: () {
+                  _savePutUpgrade(context, _selected);
+                  Navigator.pushNamed(context, "/upgradePost");
+                },
+              ),
+            ),
+            new Container(
+              padding:
+                  const EdgeInsets.only(left: 48.0, right: 48.0, top: 20.0),
+              child: new FlatButton(
+                color: widget.store.state
+                        .getState(upgradekey)["deleteupgrade"]
+                        .loading
+                    ? null
+                    : Colors.blue[500],
+                textColor: Colors.white,
+                child: widget.store.state
+                        .getState(upgradekey)["deleteupgrade"]
+                        .loading
+                    ? new Center(
+                        child: new CircularProgressIndicator(),
+                      )
+                    : new Text(
+                        '删除信息',
+                        style: new TextStyle(fontSize: 15.0),
+                      ),
+                onPressed: () {
+                  _deleteUpgrade(context, _selected);
+                },
+              ),
+            ),
+            new Container(
+              padding:
+                  const EdgeInsets.only(left: 48.0, right: 48.0, top: 20.0),
+              child: new FlatButton(
+                color: Colors.blue[500],
+                textColor: Colors.white,
+                child: new Text(
+                  '返回列表页',
+                  style: new TextStyle(fontSize: 15.0),
+                ),
+                onPressed: () {
+                  Navigator.popUntil(context, ModalRoute.withName('/upgrades'));
+                },
+              ),
+            ),
+            new Container(child: new SizedBox(height: 28.0)),
+          ]);
     return new Scaffold(
       appBar: new AppBar(
         title: new Text('设备信息'),

@@ -18,9 +18,10 @@ String _state;
 bool _putwaiting = false;
 String _newState;
 Upgrade newupgrade = new Upgrade();
+String _constraint = "1";
 
 int _systemBoard = 1, _version = 1, _lockBoard = 1;
-String _url = "http://static.fengchaohuzhu.com/box/os/";
+String _url = "http://static.fengchaohuzhu.com/box/";
 String _type = "boxos";
 
 class _UpgradePostPageState extends State<UpgradePostPage> {
@@ -73,20 +74,17 @@ class _UpgradePostPageState extends State<UpgradePostPage> {
         _selected != null ? _selected.version.toString() : _version.toString();
     _input2Controller.addListener(_handle2Input);
     widget.store.onChange.listen((state) {
-      var pop =
-          widget.store.state.getState(upgradekey)["postupgrade"].postend == true
-              ? widget.store.state.getState(upgradekey)["postupgrade"].error !=
-                      null
-                  ? _showMessage(
-                      widget.store.state
-                          .getState(upgradekey)["postupgrade"]
-                          .error
-                          .toString(),
-                      false)
-                  : _showMessage("提交成功", true)
-              : null;
-      var pup = widget.store.state.getState(upgradekey)["putupgrade"].putend ==
-              true
+      widget.store.state.getState(upgradekey)["postupgrade"].postend == true
+          ? widget.store.state.getState(upgradekey)["postupgrade"].error != null
+              ? _showMessage(
+                  widget.store.state
+                      .getState(upgradekey)["postupgrade"]
+                      .error
+                      .toString(),
+                  false)
+              : _showMessage("提交成功", true)
+          : null;
+      widget.store.state.getState(upgradekey)["putupgrade"].putend == true
           ? widget.store.state.getState(upgradekey)["putupgrade"].error != null
               ? _showMessage(
                   widget.store.state
@@ -121,8 +119,9 @@ class _UpgradePostPageState extends State<UpgradePostPage> {
     upgrade.version = _version;
     upgrade.type = _type;
     upgrade.state = 1;
-    postUpgrade(widget.store, upgrade);
+    newupgrade.constraint = int.parse(_constraint);
     reloadUpgrade(widget.store, "test-waiting");
+    postUpgrade(widget.store, upgrade);
   }
 
   void _putUpgrade(BuildContext context) {
@@ -132,6 +131,7 @@ class _UpgradePostPageState extends State<UpgradePostPage> {
     newupgrade.url = _selected.url;
     newupgrade.version = _selected.version;
     newupgrade.type = _selected.type;
+    newupgrade.constraint = int.parse(_constraint);
     switch (_newState) {
       case "待测试":
         newupgrade.state = 1;
@@ -210,6 +210,33 @@ class _UpgradePostPageState extends State<UpgradePostPage> {
                         )),
                     trailing:
                         new Text("待测试", style: new TextStyle(fontSize: 18.0)),
+                  ),
+            _putwaiting
+                ? new ListTile(
+                    title: new Text("最小版本约束",
+                        style: new TextStyle(
+                          fontSize: 16.0,
+                        )),
+                    trailing: new Text(_selected.constraint.toString() + ".0.0",
+                        style: new TextStyle(fontSize: 18.0)),
+                  )
+                : new ListTile(
+                    title: const Text('最小版本约束'),
+                    trailing: new DropdownButton<String>(
+                      value: _constraint,
+                      onChanged: (String newValue) {
+                        setState(() {
+                          _constraint = newValue;
+                        });
+                      },
+                      items:
+                          <int>[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((int value) {
+                        return new DropdownMenuItem<String>(
+                          value: value.toString(),
+                          child: new Text(value.toString()),
+                        );
+                      }).toList(),
+                    ),
                   ),
             _putwaiting
                 ? new ListTile(

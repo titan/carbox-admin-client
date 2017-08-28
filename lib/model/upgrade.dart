@@ -6,4 +6,5 @@ class Upgrade {
   int lockBoard;
   int version;
   int id;
+  int constraint;
 }
