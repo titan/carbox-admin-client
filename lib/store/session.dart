@@ -39,8 +39,8 @@ class SessionAction implements Action {
   });
 }
 
-class SessionReducer extends Reducer<SessionState, SessionAction> {
-  reduce(SessionState state, SessionAction action) {
+class SessionReducer extends ReducerClass<SessionState> {
+  SessionState call(SessionState state, SessionAction action) {
     switch (action.type) {
       case 'SIGNIN_REQUEST':
         state.loading = true;
@@ -60,40 +60,36 @@ class SessionReducer extends Reducer<SessionState, SessionAction> {
   }
 }
 
-class SessionEpic extends Epic<AppState, Action> {
-  @override
-  Stream<Action> map(
-      Stream<Action> actions, EpicStore<AppState, Action> store) {
-    return actions
-        .where((action) =>
-            action is SessionAction && action.type == 'SIGNIN_REQUEST')
-        .map((action) => (action as SessionAction).payload)
-        .asyncMap((payload) => api
-                .signIn(payload.account, payload.password)
-                .then((Session session) => new SessionAction(
-                      type: 'SIGNIN_SUCCESS',
-                      payload: new SessionActionPayload(
-                        session: session,
-                        account: payload.account,
-                      ),
-                      error: false,
-                    ))
-                .catchError((error) {
-              print(error);
-              if (error is Error) {
-                print(error.stackTrace);
-              }
-              return new SessionAction(
-                type: 'SIGNIN_FAILED',
-                payload: new SessionActionPayload(
-                  error: (error is Exception)
-                      ? error
-                      : new Exception("${error}${error.stackTrace}"),
-                ),
-                error: true,
-              );
-            }));
-  }
+Stream<Action> sessionEpic(Stream<Action> actions, EpicStore<AppState> store) {
+  return actions
+      .where((action) =>
+          action is SessionAction && action.type == 'SIGNIN_REQUEST')
+      .map((action) => (action as SessionAction).payload)
+      .asyncMap((payload) => api
+              .signIn(payload.account, payload.password)
+              .then((Session session) => new SessionAction(
+                    type: 'SIGNIN_SUCCESS',
+                    payload: new SessionActionPayload(
+                      session: session,
+                      account: payload.account,
+                    ),
+                    error: false,
+                  ))
+              .catchError((error) {
+            print(error);
+            if (error is Error) {
+              print(error.stackTrace);
+            }
+            return new SessionAction(
+              type: 'SIGNIN_FAILED',
+              payload: new SessionActionPayload(
+                error: (error is Exception)
+                    ? error
+                    : new Exception("${error}${error.stackTrace}"),
+              ),
+              error: true,
+            );
+          }));
 }
 
 void signIn(Store store, String account, String password) {

@@ -2,8 +2,6 @@ import 'dart:async';
 import 'package:adminclient/api/defination.dart';
 import 'package:adminclient/api/device.dart' as api;
 import 'package:adminclient/model/device.dart';
-// import 'package:adminclient/model/upgrade.dart';
-// import 'package:adminclient/model/session.dart';
 import 'package:adminclient/store/defination.dart';
 import 'package:adminclient/store/session.dart';
 import 'package:redux/redux.dart';
@@ -63,8 +61,8 @@ class DeviceAction implements Action {
   });
 }
 
-class DeviceReducer extends Reducer<Map<String, DeviceState>, DeviceAction> {
-  reduce(Map<String, DeviceState> states, DeviceAction action) {
+class DeviceReducer extends ReducerClass<Map<String, DeviceState>> {
+  Map<String, DeviceState> call(Map<String, DeviceState> states, DeviceAction action) {
     String tag = action.payload.tag;
     DeviceState state = states[tag];
     switch (action.type) {
@@ -149,141 +147,131 @@ class DeviceReducer extends Reducer<Map<String, DeviceState>, DeviceAction> {
   }
 }
 
-class DeviceEpic extends Epic<AppState, Action> {
-  @override
-  Stream<Action> map(
-      Stream<Action> actions, EpicStore<AppState, Action> store) {
-    return actions
-        .where((action) =>
-            action is DeviceAction &&
-            action.type == 'UNREGISTERED_DEVICES_REQUEST')
-        .map((action) => (action as DeviceAction).payload)
-        .asyncMap((payload) => api
-                .fetchUnregisteredDevices(
-                  session: store.state.getState(sessionkey).session,
-                  pin: payload.pin,
-                  offset: payload.offset,
-                  limit: payload.limit,
-                )
-                .then((CollectionResponse<Device> response) => new DeviceAction(
-                      type: 'UNREGISTERED_DEVICES_SUCCESS',
-                      payload: new DeviceActionPayload(
-                        response: response,
-                        tag: payload.tag,
-                      ),
-                      error: false,
-                    ))
-                .catchError((error) {
-              print(error);
-              if (error is Error) {
-                print(error.stackTrace);
-              }
-              return new DeviceAction(
-                type: 'UNREGISTERED_DEVICES_FAILED',
-                payload: new DeviceActionPayload(
-                  tag: payload.tag,
-                  error: (error is Exception)
-                      ? error
-                      : new Exception("${error}${error.stackTrace}"),
-                ),
-                error: true,
-              );
-            }));
-  }
+Stream<Action> deviceEpic(Stream<Action> actions, EpicStore<AppState> store) {
+  return actions
+      .where((action) =>
+          action is DeviceAction &&
+          action.type == 'UNREGISTERED_DEVICES_REQUEST')
+      .map((action) => (action as DeviceAction).payload)
+      .asyncMap((payload) => api
+              .fetchUnregisteredDevices(
+                session: store.state.getState(sessionkey).session,
+                pin: payload.pin,
+                offset: payload.offset,
+                limit: payload.limit,
+              )
+              .then((CollectionResponse<Device> response) => new DeviceAction(
+                    type: 'UNREGISTERED_DEVICES_SUCCESS',
+                    payload: new DeviceActionPayload(
+                      response: response,
+                      tag: payload.tag,
+                    ),
+                    error: false,
+                  ))
+              .catchError((error) {
+            print(error);
+            if (error is Error) {
+              print(error.stackTrace);
+            }
+            return new DeviceAction(
+              type: 'UNREGISTERED_DEVICES_FAILED',
+              payload: new DeviceActionPayload(
+                tag: payload.tag,
+                error: (error is Exception)
+                    ? error
+                    : new Exception("${error}${error.stackTrace}"),
+              ),
+              error: true,
+            );
+          }));
 }
 
-class GetDeviceEpic extends Epic<AppState, Action> {
-  @override
-  Stream<Action> map(
-      Stream<Action> actions, EpicStore<AppState, Action> store) {
-    return actions
-        .where((action) =>
-            action is DeviceAction &&
-            action.type == 'GET_REGISTERED_DEVICES_REQUEST')
-        .map((action) => (action as DeviceAction).payload)
-        .asyncMap((payload) => api
-                .fetchRegisteredDevices(
-                  session: store.state.getState(sessionkey).session,
-                  offset: payload.offset,
-                  limit: payload.limit,
-                )
-                .then((CollectionResponse<Device> response) => new DeviceAction(
-                      type: 'GET_REGISTERED_DEVICES_SUCCESS',
-                      payload: new DeviceActionPayload(
-                        response: response,
-                        tag: payload.tag,
-                      ),
-                      error: false,
-                    ))
-                .catchError((error) {
-              print(error);
-              if (error is Error) {
-                print(error.stackTrace);
-              }
-              return new DeviceAction(
-                type: 'GET_REGISTERED_DEVICES_FAILED',
-                payload: new DeviceActionPayload(
-                  tag: payload.tag,
-                  error: (error is Exception)
-                      ? error
-                      : new Exception("${error}${error.stackTrace}"),
-                ),
-                error: true,
-              );
-            }));
-  }
+Stream<Action> getDeviceEpic(
+    Stream<Action> actions, EpicStore<AppState> store) {
+  return actions
+      .where((action) =>
+          action is DeviceAction &&
+          action.type == 'GET_REGISTERED_DEVICES_REQUEST')
+      .map((action) => (action as DeviceAction).payload)
+      .asyncMap((payload) => api
+              .fetchRegisteredDevices(
+                session: store.state.getState(sessionkey).session,
+                offset: payload.offset,
+                limit: payload.limit,
+              )
+              .then((CollectionResponse<Device> response) => new DeviceAction(
+                    type: 'GET_REGISTERED_DEVICES_SUCCESS',
+                    payload: new DeviceActionPayload(
+                      response: response,
+                      tag: payload.tag,
+                    ),
+                    error: false,
+                  ))
+              .catchError((error) {
+            print(error);
+            if (error is Error) {
+              print(error.stackTrace);
+            }
+            return new DeviceAction(
+              type: 'GET_REGISTERED_DEVICES_FAILED',
+              payload: new DeviceActionPayload(
+                tag: payload.tag,
+                error: (error is Exception)
+                    ? error
+                    : new Exception("${error}${error.stackTrace}"),
+              ),
+              error: true,
+            );
+          }));
 }
 
-class PostDeviceEpic extends Epic<AppState, Action> {
-  @override
-  Stream<Action> map(
-      Stream<Action> actions, EpicStore<AppState, Action> store) {
-    return actions
-        .where((action) =>
-            action is DeviceAction &&
-            action.type == 'POST_UNREGISTERED_DEVICES_REQUEST')
-        .map((action) => (action as DeviceAction).payload)
-        .asyncMap((payload) => api
-                .postUnreigsteredDevice(
-                  session: store.state.getState(sessionkey).session,
-                  mac: payload.unregisteredSelected.mac,
-                  address: payload.unregisteredSelected.address,
-                  pin: payload.unregisteredSelected.pin,
-                  systemBoard: payload.unregisteredSelected.systemBoard,
-                  lockBoard: payload.unregisteredSelected.lockBoard,
-                  lockAmount: payload.unregisteredSelected.lockAmount,
-                  wireless: payload.unregisteredSelected.wireless,
-                  antenna: payload.unregisteredSelected.antenna,
-                  cardReader: payload.unregisteredSelected.cardReader,
-                  speaker: payload.unregisteredSelected.speaker,
-                  simNo: payload.unregisteredSelected.simNo,
-                  routerBoard: payload.unregisteredSelected.routerBoard,
-                )
-                .then((Map<String, dynamic> response) => new DeviceAction(
-                      type: 'POST_UNREGISTERED_DEVICES_SUCCESS',
-                      payload: new DeviceActionPayload(
-                        postResponse: response,
-                        tag: payload.tag,
-                      ),
-                      error: false,
-                    ))
-                .catchError((error) {
-              print(error);
-              if (error is Error) {
-                print(error.stackTrace);
-              }
-              return new DeviceAction(
-                type: 'POST_UNREGISTERED_DEVICES_FAILED',
-                payload: new DeviceActionPayload(
-                  tag: payload.tag,
-                  error: (error is Exception)
-                      ? error
-                      : new Exception("${error}${error.stackTrace}"),
-                ),
-                error: true,
-              );
-            }));
-  }
+Stream<Action> postDeviceEpic(
+    Stream<Action> actions, EpicStore<AppState> store) {
+  return actions
+      .where((action) =>
+          action is DeviceAction &&
+          action.type == 'POST_UNREGISTERED_DEVICES_REQUEST')
+      .map((action) => (action as DeviceAction).payload)
+      .asyncMap((payload) => api
+              .postUnreigsteredDevice(
+                session: store.state.getState(sessionkey).session,
+                mac: payload.unregisteredSelected.mac,
+                address: payload.unregisteredSelected.address,
+                pin: payload.unregisteredSelected.pin,
+                systemBoard: payload.unregisteredSelected.systemBoard,
+                lockBoard: payload.unregisteredSelected.lockBoard,
+                lockAmount: payload.unregisteredSelected.lockAmount,
+                wireless: payload.unregisteredSelected.wireless,
+                antenna: payload.unregisteredSelected.antenna,
+                cardReader: payload.unregisteredSelected.cardReader,
+                speaker: payload.unregisteredSelected.speaker,
+                simNo: payload.unregisteredSelected.simNo,
+                routerBoard: payload.unregisteredSelected.routerBoard,
+              )
+              .then((Map<String, dynamic> response) => new DeviceAction(
+                    type: 'POST_UNREGISTERED_DEVICES_SUCCESS',
+                    payload: new DeviceActionPayload(
+                      postResponse: response,
+                      tag: payload.tag,
+                    ),
+                    error: false,
+                  ))
+              .catchError((error) {
+            print(error);
+            if (error is Error) {
+              print(error.stackTrace);
+            }
+            return new DeviceAction(
+              type: 'POST_UNREGISTERED_DEVICES_FAILED',
+              payload: new DeviceActionPayload(
+                tag: payload.tag,
+                error: (error is Exception)
+                    ? error
+                    : new Exception("${error}${error.stackTrace}"),
+              ),
+              error: true,
+            );
+          }));
 }
 
 void fetchUnregisteredDevices(Store store, String pin, int offset) {

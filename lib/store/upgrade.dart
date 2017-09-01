@@ -2,7 +2,6 @@ import 'dart:async';
 import 'package:adminclient/api/defination.dart';
 import 'package:adminclient/api/upgrade.dart' as api;
 import 'package:adminclient/model/upgrade.dart';
-// import 'package:adminclient/model/session.dart';
 import 'package:adminclient/store/defination.dart';
 import 'package:adminclient/store/session.dart';
 import 'package:redux/redux.dart';
@@ -73,8 +72,8 @@ class UpgradeAction implements Action {
   });
 }
 
-class UpgradeReducer extends Reducer<Map<String, UpgradeState>, UpgradeAction> {
-  reduce(Map<String, UpgradeState> states, UpgradeAction action) {
+class UpgradeReducer extends ReducerClass<Map<String, UpgradeState>> {
+  Map<String, UpgradeState> call(Map<String, UpgradeState> states, UpgradeAction action) {
     String tag = action.payload.tag;
     UpgradeState state = states[tag];
     switch (action.type) {
@@ -206,219 +205,201 @@ class UpgradeReducer extends Reducer<Map<String, UpgradeState>, UpgradeAction> {
   }
 }
 
-class FetchUpgradesEpic extends Epic<AppState, Action> {
-  @override
-  Stream<Action> map(
-      Stream<Action> actions, EpicStore<AppState, Action> store) {
-    return actions
-        .where((action) =>
-            action is UpgradeAction && action.type == 'FETCH_UPGRADES_REQUEST')
-        .map((action) => (action as UpgradeAction).payload)
-        .asyncMap((payload) => api
-                .fetchgrades(
-                  session: store.state.getState(sessionkey).session,
-                  state: payload.state,
-                  offset: payload.offset,
-                  limit: payload.limit,
-                )
-                .then(
-                    (CollectionResponse<Upgrade> response) => new UpgradeAction(
-                          type: 'FETCH_UPGRADES_SUCCESS',
-                          payload: new UpgradeActionPayload(
-                            response: response,
-                            tag: payload.tag,
-                          ),
-                          error: false,
-                        ))
-                .catchError((error) {
-              if (error is Error) {
-                print(error.stackTrace);
-              }
-              return new UpgradeAction(
-                type: 'FETCH_UPGRADES_FAILED',
-                payload: new UpgradeActionPayload(
-                  tag: payload.tag,
-                  error: (error is Exception)
-                      ? error
-                      : new Exception("${error}${error.stackTrace}"),
-                ),
-                error: true,
-              );
-            }));
-  }
+Stream<Action> fetchUpgradesEpic(
+    Stream<Action> actions, EpicStore<AppState> store) {
+  return actions
+      .where((action) =>
+          action is UpgradeAction && action.type == 'FETCH_UPGRADES_REQUEST')
+      .map((action) => (action as UpgradeAction).payload)
+      .asyncMap((payload) => api
+              .fetchgrades(
+                session: store.state.getState(sessionkey).session,
+                state: payload.state,
+                offset: payload.offset,
+                limit: payload.limit,
+              )
+              .then((CollectionResponse<Upgrade> response) => new UpgradeAction(
+                    type: 'FETCH_UPGRADES_SUCCESS',
+                    payload: new UpgradeActionPayload(
+                      response: response,
+                      tag: payload.tag,
+                    ),
+                    error: false,
+                  ))
+              .catchError((error) {
+            if (error is Error) {
+              print(error.stackTrace);
+            }
+            return new UpgradeAction(
+              type: 'FETCH_UPGRADES_FAILED',
+              payload: new UpgradeActionPayload(
+                tag: payload.tag,
+                error: (error is Exception)
+                    ? error
+                    : new Exception("${error}${error.stackTrace}"),
+              ),
+              error: true,
+            );
+          }));
 }
 
-class FetchUpgradeEpic extends Epic<AppState, Action> {
-  @override
-  Stream<Action> map(
-      Stream<Action> actions, EpicStore<AppState, Action> store) {
-    return actions
-        .where((action) =>
-            action is UpgradeAction && action.type == 'FETCH_UPGRADE_REQUEST')
-        .map((action) => (action as UpgradeAction).payload)
-        .asyncMap((payload) => api
-                .fetchgrade(
-                  session: store.state.getState(sessionkey).session,
-                  id: payload.id,
-                )
-                .then(
-                    (CollectionResponse<Upgrade> response) => new UpgradeAction(
-                          type: 'FETCH_UPGRADE_SUCCESS',
-                          payload: new UpgradeActionPayload(
-                            response: response,
-                            tag: payload.tag,
-                          ),
-                          error: false,
-                        ))
-                .catchError((error) {
-              if (error is Error) {
-                print(error.stackTrace);
-              }
-              return new UpgradeAction(
-                type: 'FETCH_UPGRADE_FAILED',
-                payload: new UpgradeActionPayload(
-                  tag: payload.tag,
-                  error: (error is Exception)
-                      ? error
-                      : new Exception("${error}${error.stackTrace}"),
-                ),
-                error: true,
-              );
-            }));
-  }
+Stream<Action> fetchUpgradeEpic(
+    Stream<Action> actions, EpicStore<AppState> store) {
+  return actions
+      .where((action) =>
+          action is UpgradeAction && action.type == 'FETCH_UPGRADE_REQUEST')
+      .map((action) => (action as UpgradeAction).payload)
+      .asyncMap((payload) => api
+              .fetchgrade(
+                session: store.state.getState(sessionkey).session,
+                id: payload.id,
+              )
+              .then((CollectionResponse<Upgrade> response) => new UpgradeAction(
+                    type: 'FETCH_UPGRADE_SUCCESS',
+                    payload: new UpgradeActionPayload(
+                      response: response,
+                      tag: payload.tag,
+                    ),
+                    error: false,
+                  ))
+              .catchError((error) {
+            if (error is Error) {
+              print(error.stackTrace);
+            }
+            return new UpgradeAction(
+              type: 'FETCH_UPGRADE_FAILED',
+              payload: new UpgradeActionPayload(
+                tag: payload.tag,
+                error: (error is Exception)
+                    ? error
+                    : new Exception("${error}${error.stackTrace}"),
+              ),
+              error: true,
+            );
+          }));
 }
 
-class DeleteUpgradeEpic extends Epic<AppState, Action> {
-  @override
-  Stream<Action> map(
-      Stream<Action> actions, EpicStore<AppState, Action> store) {
-    return actions
-        .where((action) =>
-            action is UpgradeAction && action.type == 'DELETE_UPGRADE_REQUEST')
-        .map((action) => (action as UpgradeAction).payload)
-        .asyncMap((payload) => api
-                .deleteUpgrade(
-                  session: store.state.getState(sessionkey).session,
-                  id: payload.id,
-                )
-                .then(
-                    (CollectionResponse<Upgrade> response) => new UpgradeAction(
-                          type: 'DELETE_UPGRADE_SUCCESS',
-                          payload: new UpgradeActionPayload(
-                            response: response,
-                            tag: payload.tag,
-                          ),
-                          error: false,
-                        ))
-                .catchError((error) {
-              print(error);
-              if (error is Error) {
-                print(error.stackTrace);
-              }
-              return new UpgradeAction(
-                type: 'DELETE_UPGRADE_FAILED',
-                payload: new UpgradeActionPayload(
-                  tag: payload.tag,
-                  error: (error is Exception)
-                      ? error
-                      : new Exception("${error}${error.stackTrace}"),
-                ),
-                error: true,
-              );
-            }));
-  }
+Stream<Action> deleteUpgradeEpic(
+    Stream<Action> actions, EpicStore<AppState> store) {
+  return actions
+      .where((action) =>
+          action is UpgradeAction && action.type == 'DELETE_UPGRADE_REQUEST')
+      .map((action) => (action as UpgradeAction).payload)
+      .asyncMap((payload) => api
+              .deleteUpgrade(
+                session: store.state.getState(sessionkey).session,
+                id: payload.id,
+              )
+              .then((CollectionResponse<Upgrade> response) => new UpgradeAction(
+                    type: 'DELETE_UPGRADE_SUCCESS',
+                    payload: new UpgradeActionPayload(
+                      response: response,
+                      tag: payload.tag,
+                    ),
+                    error: false,
+                  ))
+              .catchError((error) {
+            print(error);
+            if (error is Error) {
+              print(error.stackTrace);
+            }
+            return new UpgradeAction(
+              type: 'DELETE_UPGRADE_FAILED',
+              payload: new UpgradeActionPayload(
+                tag: payload.tag,
+                error: (error is Exception)
+                    ? error
+                    : new Exception("${error}${error.stackTrace}"),
+              ),
+              error: true,
+            );
+          }));
 }
 
-class PostUpgradeEpic extends Epic<AppState, Action> {
-  @override
-  Stream<Action> map(
-      Stream<Action> actions, EpicStore<AppState, Action> store) {
-    return actions
-        .where((action) =>
-            action is UpgradeAction && action.type == 'POST_UPGRADE_REQUEST')
-        .map((action) => (action as UpgradeAction).payload)
-        .asyncMap((payload) => api
-                .postUpgrade(
-                  session: store.state.getState(sessionkey).session,
-                  state: payload.postWaiting.state,
-                  url: payload.postWaiting.url,
-                  type: payload.postWaiting.type,
-                  systemBoard: payload.postWaiting.systemBoard,
-                  lockBoard: payload.postWaiting.lockBoard,
-                  version: payload.postWaiting.version,
-                  constraint: payload.postWaiting.constraint,
-                )
-                .then((Map<String, dynamic> response) => new UpgradeAction(
-                      type: 'POST_UPGRADE_SUCCESS',
-                      payload: new UpgradeActionPayload(
-                        postResponse: response,
-                        tag: payload.tag,
-                      ),
-                      error: false,
-                    ))
-                .catchError((error) {
-              if (error is Error) {
-                print(error.stackTrace);
-              }
-              return new UpgradeAction(
-                type: 'POST_UPGRADE_FAILED',
-                payload: new UpgradeActionPayload(
-                  tag: payload.tag,
-                  error: (error is Exception)
-                      ? error
-                      : new Exception("${error}${error.stackTrace}"),
-                ),
-                error: true,
-              );
-            }));
-  }
+Stream<Action> postUpgradeEpic(
+    Stream<Action> actions, EpicStore<AppState> store) {
+  return actions
+      .where((action) =>
+          action is UpgradeAction && action.type == 'POST_UPGRADE_REQUEST')
+      .map((action) => (action as UpgradeAction).payload)
+      .asyncMap((payload) => api
+              .postUpgrade(
+                session: store.state.getState(sessionkey).session,
+                state: payload.postWaiting.state,
+                url: payload.postWaiting.url,
+                type: payload.postWaiting.type,
+                systemBoard: payload.postWaiting.systemBoard,
+                lockBoard: payload.postWaiting.lockBoard,
+                version: payload.postWaiting.version,
+                constraint: payload.postWaiting.constraint,
+              )
+              .then((Map<String, dynamic> response) => new UpgradeAction(
+                    type: 'POST_UPGRADE_SUCCESS',
+                    payload: new UpgradeActionPayload(
+                      postResponse: response,
+                      tag: payload.tag,
+                    ),
+                    error: false,
+                  ))
+              .catchError((error) {
+            if (error is Error) {
+              print(error.stackTrace);
+            }
+            return new UpgradeAction(
+              type: 'POST_UPGRADE_FAILED',
+              payload: new UpgradeActionPayload(
+                tag: payload.tag,
+                error: (error is Exception)
+                    ? error
+                    : new Exception("${error}${error.stackTrace}"),
+              ),
+              error: true,
+            );
+          }));
 }
 
-class PutUpgradeEpic extends Epic<AppState, Action> {
-  @override
-  Stream<Action> map(
-      Stream<Action> actions, EpicStore<AppState, Action> store) {
-    return actions
-        .where((action) =>
-            action is UpgradeAction && action.type == 'PUT_UPGRADE_REQUEST')
-        .map((action) => (action as UpgradeAction).payload)
-        .asyncMap((payload) => api
-                .putUpgrade(
-                  session: store.state.getState(sessionkey).session,
-                  state: payload.putWaiting.state,
-                  url: payload.putWaiting.url,
-                  type: payload.putWaiting.type,
-                  systemBoard: payload.putWaiting.systemBoard,
-                  lockBoard: payload.putWaiting.lockBoard,
-                  id: payload.putWaiting.id,
-                  version: payload.putWaiting.version,
-                  constraint: payload.putWaiting.constraint,
-                )
-                .then((Map<String, dynamic> response) => new UpgradeAction(
-                      type: 'PUT_UPGRADE_SUCCESS',
-                      payload: new UpgradeActionPayload(
-                        postResponse: response,
-                        tag: payload.tag,
-                      ),
-                      error: false,
-                    ))
-                .catchError((error) {
-              print(error);
-              if (error is Error) {
-                print(error.stackTrace);
-              }
-              return new UpgradeAction(
-                type: 'PUT_UPGRADE_FAILED',
-                payload: new UpgradeActionPayload(
-                  tag: payload.tag,
-                  error: (error is Exception)
-                      ? error
-                      : new Exception("${error}${error.stackTrace}"),
-                ),
-                error: true,
-              );
-            }));
-  }
+Stream<Action> putUpgradeEpic(
+    Stream<Action> actions, EpicStore<AppState> store) {
+  return actions
+      .where((action) =>
+          action is UpgradeAction && action.type == 'PUT_UPGRADE_REQUEST')
+      .map((action) => (action as UpgradeAction).payload)
+      .asyncMap((payload) => api
+              .putUpgrade(
+                session: store.state.getState(sessionkey).session,
+                state: payload.putWaiting.state,
+                url: payload.putWaiting.url,
+                type: payload.putWaiting.type,
+                systemBoard: payload.putWaiting.systemBoard,
+                lockBoard: payload.putWaiting.lockBoard,
+                id: payload.putWaiting.id,
+                version: payload.putWaiting.version,
+                constraint: payload.putWaiting.constraint,
+              )
+              .then((Map<String, dynamic> response) => new UpgradeAction(
+                    type: 'PUT_UPGRADE_SUCCESS',
+                    payload: new UpgradeActionPayload(
+                      postResponse: response,
+                      tag: payload.tag,
+                    ),
+                    error: false,
+                  ))
+              .catchError((error) {
+            print(error);
+            if (error is Error) {
+              print(error.stackTrace);
+            }
+            return new UpgradeAction(
+              type: 'PUT_UPGRADE_FAILED',
+              payload: new UpgradeActionPayload(
+                tag: payload.tag,
+                error: (error is Exception)
+                    ? error
+                    : new Exception("${error}${error.stackTrace}"),
+              ),
+              error: true,
+            );
+          }));
 }
 
 void selectUpgrade(Store store, Upgrade upgrade) {

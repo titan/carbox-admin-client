@@ -5,22 +5,22 @@ import 'package:adminclient/store/upgrade.dart';
 import 'package:redux/redux.dart';
 import 'package:redux_epics/redux_epics.dart';
 
-class AppReducer extends Reducer<AppState, Action> {
-  Map<String, Reducer<Object, Action>> reducers;
+class AppReducer extends ReducerClass<AppState> {
+  Map<String, ReducerClass<Object>> reducers;
 
   AppReducer() {
-    this.reducers = new Map<String, Reducer<Object, Action>>();
+    this.reducers = new Map<String, ReducerClass<Object>>();
   }
 
-  void putReducer(String tag, Reducer<Object, Action> reducer) {
+  void putReducer(String tag, ReducerClass<Object> reducer) {
     this.reducers[tag] = reducer;
   }
 
-  AppState reduce(AppState state, Action action) {
+  AppState call(AppState state, Action action) {
     Object substate = state.getState(action.meta);
     if (substate != null) {
       state.putState(
-          action.meta, this.reducers[action.meta].reduce(substate, action));
+          action.meta, this.reducers[action.meta].call(substate, action));
     }
     return state;
   }
@@ -29,16 +29,16 @@ class AppReducer extends Reducer<AppState, Action> {
 Store createStore() {
   final reducer = new AppReducer();
   final state = new AppState();
-  final epicMiddleware = new EpicMiddleware(new CombinedEpic<AppState, Action>([
-    new SessionEpic(),
-    new DeviceEpic(),
-    new GetDeviceEpic(),
-    new PostDeviceEpic(),
-    new PostUpgradeEpic(),
-    new FetchUpgradeEpic(),
-    new FetchUpgradesEpic(),
-    new DeleteUpgradeEpic(),
-    new PutUpgradeEpic(),
+  final epicMiddleware = new EpicMiddleware(combineEpics<AppState>(<Epic<AppState>>[
+    sessionEpic,
+    deviceEpic,
+    getDeviceEpic,
+    postDeviceEpic,
+    postUpgradeEpic,
+    fetchUpgradeEpic,
+    fetchUpgradesEpic,
+    deleteUpgradeEpic,
+    putUpgradeEpic,
   ]));
 
   reducer.putReducer(sessionkey, new SessionReducer());
