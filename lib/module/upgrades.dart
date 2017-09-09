@@ -35,6 +35,7 @@ class _UpgradesPageState extends State<UpgradesPage>
     with SingleTickerProviderStateMixin {
   bool reload = false;
   TabController _controller;
+  final ScrollController _scrollController = new ScrollController();
   _Page _selectedPage = _pages[0];
   Map<String, UpgradeState> _upgradeStates;
 
@@ -47,6 +48,19 @@ class _UpgradesPageState extends State<UpgradesPage>
             widget.store, _selectedPage.id, _selectedPage.key, _state.offset);
       }
     });
+  }
+
+  bool _handleScrollNotification(ScrollNotification notification) {
+    if (notification.depth == 0 && notification is OverscrollNotification) {
+      if (notification.overscroll > 0) {
+        // got to the end of scrollable
+        UpgradeState _state = _upgradeStates[_selectedPage.id];
+        if (!_state.nomore) {
+          fetchUpgrades(
+              widget.store, _selectedPage.id, _selectedPage.key, _state.offset);
+        }
+      }
+    }
   }
 
   @override
@@ -123,6 +137,21 @@ class _UpgradesPageState extends State<UpgradesPage>
           );
   }
 
+  List<Widget> fillListView(final ThemeData theme, final UpgradeState state) {
+    List<Widget> items =
+        state.data.map((x) => buildItem(theme, state, x)).toList();
+    if (state.loading) {
+      items.add(new Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: <Widget>[
+          new CircularProgressIndicator(),
+          new Text("加载中..."),
+        ],
+      ));
+    }
+    return items;
+  }
+
   @override
   Widget build(BuildContext context) {
     final ThemeData theme = Theme.of(context);
@@ -142,15 +171,12 @@ class _UpgradesPageState extends State<UpgradesPage>
         children: _pages.map((_Page page) {
           return _state.error != null
               ? new Center(child: new Text(_state.error.toString()))
-              : (_state.loading
-                  ? new Center(
-                      child: new CircularProgressIndicator(),
-                    )
-                  : new ListView(
-                      children: _state.data
-                          .map((x) => buildItem(theme, _state, x))
-                          .toList(),
-                    ));
+              : new NotificationListener<ScrollNotification>(
+                  onNotification: _handleScrollNotification,
+                  child: new ListView(
+                    children: fillListView(theme, _state),
+                  ),
+                );
         }).toList(),
       ),
       floatingActionButton: _controller.index == 0
