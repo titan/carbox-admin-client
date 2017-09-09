@@ -7,9 +7,8 @@ import 'package:adminclient/module/launcher.dart';
 import 'package:adminclient/module/signin.dart';
 import 'package:adminclient/module/deviceDetail.dart';
 import 'package:adminclient/module/devicePost.dart';
+import 'package:adminclient/module/upgrade.dart';
 import 'package:adminclient/module/upgrades.dart';
-import 'package:adminclient/module/upgradePost.dart';
-import 'package:adminclient/module/upgradeDetail.dart';
 
 void main() {
   runApp(new AppWidget());
@@ -62,10 +61,8 @@ class _AppState extends State<AppWidget> {
             new DevicePostPage(title: '设备注册', store: store),
         '/upgrades': (BuildContext context) =>
             new UpgradesPage(title: '升级管理', store: store),
-        '/upgradePost': (BuildContext context) =>
-            new UpgradePostPage(title: '信息提交', store: store),
-        '/upgradeDetail': (BuildContext context) =>
-            new UpgradeDetailPage(title: '升级详情', store: store),
+        '/upgrade': (BuildContext context) =>
+            new UpgradePage(title: '升级详情', store: store),
       },
     );
   }

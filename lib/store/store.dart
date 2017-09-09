@@ -34,11 +34,11 @@ Store createStore() {
     deviceEpic,
     getDeviceEpic,
     postDeviceEpic,
-    postUpgradeEpic,
+    createUpgradeEpic,
     fetchUpgradeEpic,
     fetchUpgradesEpic,
     deleteUpgradeEpic,
-    putUpgradeEpic,
+    modifyUpgradeEpic,
   ]));
 
   reducer.putReducer(sessionkey, new SessionReducer());
@@ -52,16 +52,11 @@ Store createStore() {
   });
   reducer.putReducer(upgradekey, new UpgradeReducer());
   state.putState(upgradekey, {
-    "fetchupgrades": new UpgradeState(),
-    "test-waiting": new UpgradeState(),
-    "test-failed": new UpgradeState(),
-    "publish-waiting": new UpgradeState(),
-    "published": new UpgradeState(),
-    "fetchupgrade": new UpgradeState(),
-    "postupgrade": new UpgradeState(),
-    "putupgrade": new UpgradeState(),
-    "deleteupgrade": new UpgradeState(),
-    "select": new UpgradeState(),
+    "selected": new UpgradeState(),
+    "testing": new UpgradeState(),
+    "failed": new UpgradeState(),
+    "releasing": new UpgradeState(),
+    "released": new UpgradeState(),
   });
   return new Store(reducer, middleware: [epicMiddleware], initialState: state);
 }

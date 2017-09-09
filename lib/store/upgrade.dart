@@ -12,50 +12,33 @@ const String upgradekey = 'upgrade';
 class UpgradeState {
   int total = 0;
   int offset = 0;
-  String id = "";
   List<Upgrade> data = <Upgrade>[];
   Upgrade selected = null;
-  Upgrade put = null;
+  Upgrade toDelete = null;
   bool loading = false;
+  bool editing = false;
+  bool deleting = false;
+  bool deletable = false;
   bool nomore = false;
-  bool reload = false;
-  bool postend = false;
-  bool putend = false;
-  bool deleted = false;
-  bool putWaiting = false;
-  // bool postWaiting = false;
   Exception error = null;
 }
 
 class UpgradeActionPayload {
   final String tag;
-  // final String key;
-  final int id;
   final int offset;
   final int limit;
   final int state;
   final Exception error;
   final CollectionResponse<Upgrade> response;
-  final Map<String, dynamic> postResponse;
   final Upgrade selected;
-  final Upgrade postWaiting;
-  final Upgrade testWaiting;
-  final Upgrade putWaiting;
-  final Upgrade upgrade;
   UpgradeActionPayload({
-    this.tag = "fetchupgrades",
-    this.id = 0,
+    this.tag = "selected",
     this.offset = 0,
     this.limit = 20,
     this.state = 1,
     this.error,
     this.response,
     this.selected,
-    this.postWaiting,
-    this.testWaiting,
-    this.putWaiting,
-    this.postResponse,
-    this.upgrade,
   });
 }
 
@@ -73,13 +56,13 @@ class UpgradeAction implements Action {
 }
 
 class UpgradeReducer extends ReducerClass<Map<String, UpgradeState>> {
-  Map<String, UpgradeState> call(Map<String, UpgradeState> states, UpgradeAction action) {
+  Map<String, UpgradeState> call(
+      Map<String, UpgradeState> states, UpgradeAction action) {
     String tag = action.payload.tag;
     UpgradeState state = states[tag];
     switch (action.type) {
       case 'FETCH_UPGRADES_REQUEST':
         state.loading = true;
-        state.reload = false;
         return states;
       case 'FETCH_UPGRADES_SUCCESS':
         var response = action.payload.response;
@@ -98,45 +81,32 @@ class UpgradeReducer extends ReducerClass<Map<String, UpgradeState>> {
         state.loading = false;
         state.error = action.payload.error;
         return states;
-      case 'UPGRADE_SELECT':
+      case 'SELECT_UPGRADE':
+        state.selected = action.payload.selected;
+        if (state.selected == null) {
+          state.editing = true;
+        } else {
+          state.editing = false;
+        }
+        return states;
+      case 'EDIT_UPGRADE':
+        state.editing = true;
+        return states;
+      case 'CREATE_UPGRADE_REQUEST':
+        state.loading = true;
+        return states;
+      case 'CREATE_UPGRADE_SUCCESS':
+        <String>["testing"]
+            .forEach((String x) {
+          states[x] = new UpgradeState();
+        });
+        state.loading = false;
+        state.editing = false;
         state.selected = action.payload.selected;
         return states;
-      case 'UPGRADE_SAVE_PUT':
-        state.put = action.payload.putWaiting;
-        state.putWaiting = true;
-        return states;
-      case 'RELOAD_UPGRADE':
-        state.reload = true;
-        return states;
-      case 'POST_UPGRADE_WAITING_REQUEST':
-        state.put = null;
-        state.putWaiting = false;
-        return states;
-      case 'POST_UPGRADE_REQUEST':
-        state.loading = true;
-        state.postend = false;
-        return states;
-      case 'POST_UPGRADE_FAILED':
+      case 'CREATE_UPGRADE_FAILED':
         state.loading = false;
-        state.postend = true;
         state.error = action.payload.error;
-        return states;
-      case 'POST_UPGRADE_SUCCESS':
-        UpgradeState newState = states["select"];
-        var response = action.payload.postResponse;
-        var res = new Upgrade();
-        res.state = response["state"];
-        res.systemBoard = response["system-board"];
-        res.url = response["url"];
-        res.lockBoard = response["lock-boadr"];
-        res.version = response["version"];
-        res.id = response["id"];
-        res.type = response["type"];
-        res.constraint = response["constraint"];
-        state.loading = false;
-        state.postend = true;
-        state.selected = res;
-        newState.selected = res;
         return states;
       case 'FETCH_UPGRADE_REQUEST':
         state.loading = true;
@@ -158,46 +128,38 @@ class UpgradeReducer extends ReducerClass<Map<String, UpgradeState>> {
         state.loading = false;
         state.error = action.payload.error;
         return states;
-      case 'PUT_UPGRADE_REQUEST':
+      case 'MODIFY_UPGRADE_REQUEST':
         state.loading = true;
-        state.putend = false;
         return states;
-      case 'PUT_UPGRADE_SUCCESS':
-        UpgradeState new1State = states["select"];
-        var response = action.payload.postResponse;
-        var res = new Upgrade();
-        res.state = response["state"];
-        res.systemBoard = response["system-board"];
-        res.url = response["url"];
-        res.lockBoard = response["lock-boadr"];
-        res.version = response["version"];
-        res.id = response["id"];
-        res.type = response["type"];
-        res.constraint = response["constraint"];
+      case 'MODIFY_UPGRADE_SUCCESS':
+        <String>["testing", "failed", "releasing", "released"]
+            .forEach((String x) {
+          states[x] = new UpgradeState();
+        });
         state.loading = false;
-        state.postend = true;
-        state.selected = res;
-        new1State.selected = res;
-        state.putWaiting = false;
-        state.putend = true;
+        state.editing = false;
         return states;
-      case 'PUT_UPGRADE_FAILED':
+      case 'MODIFY_UPGRADE_FAILED':
         state.loading = false;
-        state.putend = true;
         state.error = action.payload.error;
         return states;
       case 'DELETE_UPGRADE_REQUEST':
-        state.loading = true;
-        state.deleted = false;
+        state.deleting = true;
+        state.toDelete = action.payload.selected;
         return states;
       case 'DELETE_UPGRADE_SUCCESS':
-        state.loading = false;
-        state.deleted = true;
+        state.deleting = false;
+        state.data = state.data.where((x) => x != action.payload.selected).toList();
         return states;
       case 'DELETE_UPGRADE_FAILED':
-        state.loading = false;
-        state.deleted = true;
+        state.deleting = false;
         state.error = action.payload.error;
+        return states;
+      case 'DISPLAY_DELETE_UPGRADE_ACTION':
+        state.deletable = true;
+        return states;
+      case 'HIDE_DELETE_UPGRADE_ACTION':
+        state.deletable = false;
         return states;
       default:
         return states;
@@ -212,7 +174,7 @@ Stream<Action> fetchUpgradesEpic(
           action is UpgradeAction && action.type == 'FETCH_UPGRADES_REQUEST')
       .map((action) => (action as UpgradeAction).payload)
       .asyncMap((payload) => api
-              .fetchgrades(
+              .fetchUpgrades(
                 session: store.state.getState(sessionkey).session,
                 state: payload.state,
                 offset: payload.offset,
@@ -250,7 +212,7 @@ Stream<Action> fetchUpgradeEpic(
           action is UpgradeAction && action.type == 'FETCH_UPGRADE_REQUEST')
       .map((action) => (action as UpgradeAction).payload)
       .asyncMap((payload) => api
-              .fetchgrade(
+              .fetchUpgrade(
                 session: store.state.getState(sessionkey).session,
                 id: payload.id,
               )
@@ -288,13 +250,13 @@ Stream<Action> deleteUpgradeEpic(
       .asyncMap((payload) => api
               .deleteUpgrade(
                 session: store.state.getState(sessionkey).session,
-                id: payload.id,
+                id: payload.selected.id,
               )
-              .then((CollectionResponse<Upgrade> response) => new UpgradeAction(
+              .then((bool okay) => new UpgradeAction(
                     type: 'DELETE_UPGRADE_SUCCESS',
                     payload: new UpgradeActionPayload(
-                      response: response,
                       tag: payload.tag,
+                      selected: payload.selected,
                     ),
                     error: false,
                   ))
@@ -316,27 +278,26 @@ Stream<Action> deleteUpgradeEpic(
           }));
 }
 
-Stream<Action> postUpgradeEpic(
+Stream<Action> createUpgradeEpic(
     Stream<Action> actions, EpicStore<AppState> store) {
   return actions
       .where((action) =>
-          action is UpgradeAction && action.type == 'POST_UPGRADE_REQUEST')
+          action is UpgradeAction && action.type == 'CREATE_UPGRADE_REQUEST')
       .map((action) => (action as UpgradeAction).payload)
       .asyncMap((payload) => api
-              .postUpgrade(
+              .createUpgrade(
                 session: store.state.getState(sessionkey).session,
-                state: payload.postWaiting.state,
-                url: payload.postWaiting.url,
-                type: payload.postWaiting.type,
-                systemBoard: payload.postWaiting.systemBoard,
-                lockBoard: payload.postWaiting.lockBoard,
-                version: payload.postWaiting.version,
-                constraint: payload.postWaiting.constraint,
+                state: payload.selected.state,
+                url: payload.selected.url,
+                type: payload.selected.type,
+                systemBoard: payload.selected.systemBoard,
+                lockBoard: payload.selected.lockBoard,
+                version: payload.selected.version,
               )
-              .then((Map<String, dynamic> response) => new UpgradeAction(
-                    type: 'POST_UPGRADE_SUCCESS',
+              .then((Upgrade upgrade) => new UpgradeAction(
+                    type: 'CREATE_UPGRADE_SUCCESS',
                     payload: new UpgradeActionPayload(
-                      postResponse: response,
+                      selected: upgrade,
                       tag: payload.tag,
                     ),
                     error: false,
@@ -346,7 +307,7 @@ Stream<Action> postUpgradeEpic(
               print(error.stackTrace);
             }
             return new UpgradeAction(
-              type: 'POST_UPGRADE_FAILED',
+              type: 'CREATE_UPGRADE_FAILED',
               payload: new UpgradeActionPayload(
                 tag: payload.tag,
                 error: (error is Exception)
@@ -358,28 +319,27 @@ Stream<Action> postUpgradeEpic(
           }));
 }
 
-Stream<Action> putUpgradeEpic(
+Stream<Action> modifyUpgradeEpic(
     Stream<Action> actions, EpicStore<AppState> store) {
   return actions
       .where((action) =>
-          action is UpgradeAction && action.type == 'PUT_UPGRADE_REQUEST')
+          action is UpgradeAction && action.type == 'MODIFY_UPGRADE_REQUEST')
       .map((action) => (action as UpgradeAction).payload)
       .asyncMap((payload) => api
-              .putUpgrade(
+              .modifyUpgrade(
                 session: store.state.getState(sessionkey).session,
-                state: payload.putWaiting.state,
-                url: payload.putWaiting.url,
-                type: payload.putWaiting.type,
-                systemBoard: payload.putWaiting.systemBoard,
-                lockBoard: payload.putWaiting.lockBoard,
-                id: payload.putWaiting.id,
-                version: payload.putWaiting.version,
-                constraint: payload.putWaiting.constraint,
+                state: payload.selected.state,
+                url: payload.selected.url,
+                type: payload.selected.type,
+                systemBoard: payload.selected.systemBoard,
+                lockBoard: payload.selected.lockBoard,
+                id: payload.selected.id,
+                version: payload.selected.version,
               )
-              .then((Map<String, dynamic> response) => new UpgradeAction(
-                    type: 'PUT_UPGRADE_SUCCESS',
+              .then((Upgrade upgrade) => new UpgradeAction(
+                    type: 'MODIFY_UPGRADE_SUCCESS',
                     payload: new UpgradeActionPayload(
-                      postResponse: response,
+                      selected: upgrade,
                       tag: payload.tag,
                     ),
                     error: false,
@@ -390,7 +350,7 @@ Stream<Action> putUpgradeEpic(
               print(error.stackTrace);
             }
             return new UpgradeAction(
-              type: 'PUT_UPGRADE_FAILED',
+              type: 'MODIFY_UPGRADE_FAILED',
               payload: new UpgradeActionPayload(
                 tag: payload.tag,
                 error: (error is Exception)
@@ -404,63 +364,20 @@ Stream<Action> putUpgradeEpic(
 
 void selectUpgrade(Store store, Upgrade upgrade) {
   store.dispatch(new UpgradeAction(
-    type: 'UPGRADE_SELECT',
+    type: 'SELECT_UPGRADE',
     payload: new UpgradeActionPayload(
-      tag: "select",
+      tag: "selected",
       selected: upgrade,
     ),
   ));
 }
 
-void savePutUpgrade(Store store, Upgrade upgrade) {
-  store.dispatch(new UpgradeAction(
-    type: 'UPGRADE_SAVE_PUT',
-    payload: new UpgradeActionPayload(
-      tag: "putupgrade",
-      putWaiting: upgrade,
-    ),
-  ));
-}
-
-void fetch1Upgrades(Store store, int offset) {
+void fetchUpgrades(Store store, String tag, int state, int offset) {
   store.dispatch(new UpgradeAction(
     type: 'FETCH_UPGRADES_REQUEST',
     payload: new UpgradeActionPayload(
-      tag: "test-waiting",
-      state: 1,
-      offset: offset,
-    ),
-  ));
-}
-
-void fetch2Upgrades(Store store, int offset) {
-  store.dispatch(new UpgradeAction(
-    type: 'FETCH_UPGRADES_REQUEST',
-    payload: new UpgradeActionPayload(
-      tag: "test-failed",
-      state: -1,
-      offset: offset,
-    ),
-  ));
-}
-
-void fetch3Upgrades(Store store, int offset) {
-  store.dispatch(new UpgradeAction(
-    type: 'FETCH_UPGRADES_REQUEST',
-    payload: new UpgradeActionPayload(
-      tag: "publish-waiting",
-      state: 2,
-      offset: offset,
-    ),
-  ));
-}
-
-void fetch4Upgrades(Store store, int offset) {
-  store.dispatch(new UpgradeAction(
-    type: 'FETCH_UPGRADES_REQUEST',
-    payload: new UpgradeActionPayload(
-      tag: "published",
-      state: 15,
+      tag: tag,
+      state: state,
       offset: offset,
     ),
   ));
@@ -477,51 +394,59 @@ void fetchUpgrade(Store store, int id, int offset) {
   ));
 }
 
-void postUpgrade(Store store, Upgrade upgrade) {
+void createUpgrade(Store store, Upgrade upgrade) {
   store.dispatch(new UpgradeAction(
-    type: 'POST_UPGRADE_REQUEST',
+    type: 'CREATE_UPGRADE_REQUEST',
     payload: new UpgradeActionPayload(
-      tag: "postupgrade",
-      postWaiting: upgrade,
+      tag: "selected",
+      selected: upgrade,
     ),
   ));
 }
 
-void postWaiting(Store store) {
+void modifyUpgrade(Store store, Upgrade upgrade) {
   store.dispatch(new UpgradeAction(
-    type: 'POST_UPGRADE_WAITING_REQUEST',
+    type: 'MODIFY_UPGRADE_REQUEST',
     payload: new UpgradeActionPayload(
-      tag: "putupgrade",
-      // postWaiting: upgrade,
+      tag: "selected",
+      selected: upgrade,
     ),
   ));
 }
 
-void putUpgrade(Store store, Upgrade upgrade) {
-  store.dispatch(new UpgradeAction(
-    type: 'PUT_UPGRADE_REQUEST',
-    payload: new UpgradeActionPayload(
-      tag: "putupgrade",
-      putWaiting: upgrade,
-    ),
-  ));
-}
-
-void deleteUpgrade(Store store, int id) {
+void deleteUpgrade(Store store, String tag, Upgrade upgrade) {
   store.dispatch(new UpgradeAction(
     type: 'DELETE_UPGRADE_REQUEST',
     payload: new UpgradeActionPayload(
-      tag: "deleteupgrade",
-      id: id,
+      tag: tag,
+      selected: upgrade,
     ),
   ));
 }
 
-void reloadUpgrade(Store store, String key) {
+void editUpgrade(Store store) {
   store.dispatch(new UpgradeAction(
-    type: 'RELOAD_UPGRADE',
+    type: 'EDIT_UPGRADE',
     payload: new UpgradeActionPayload(
-      tag: key,
+      tag: "selected",
+    ),
+  ));
+}
+
+void displayDeleteUpgradeAction(Store store, String tag) {
+  store.dispatch(new UpgradeAction(
+    type: 'DISPLAY_DELETE_UPGRADE_ACTION',
+    payload: new UpgradeActionPayload(
+      tag: tag,
+    ),
+  ));
+}
+
+void hideDeleteUpgradeAction(Store store, String tag) {
+  store.dispatch(new UpgradeAction(
+    type: 'HIDE_DELETE_UPGRADE_ACTION',
+    payload: new UpgradeActionPayload(
+      tag: tag,
     ),
   ));
 }
