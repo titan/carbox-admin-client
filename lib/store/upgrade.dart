@@ -85,6 +85,7 @@ class UpgradeReducer extends ReducerClass<Map<String, UpgradeState>> {
         state.selected = action.payload.selected;
         if (state.selected == null) {
           state.editing = true;
+          state.error = null;
         } else {
           state.editing = false;
         }

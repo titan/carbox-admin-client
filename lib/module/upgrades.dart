@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:redux/redux.dart';
@@ -38,6 +39,7 @@ class _UpgradesPageState extends State<UpgradesPage>
   final ScrollController _scrollController = new ScrollController();
   _Page _selectedPage = _pages[0];
   Map<String, UpgradeState> _upgradeStates;
+  StreamSubscription _subscription;
 
   void _handleTabSelection() {
     setState(() {
@@ -72,15 +74,16 @@ class _UpgradesPageState extends State<UpgradesPage>
       length: _pages.length,
     );
     _controller.addListener(_handleTabSelection);
-    UpgradeState _state = _upgradeStates["testing"];
+    UpgradeState _state = _upgradeStates[_selectedPage.id];
     if (!_state.nomore && _state.data.length == 0) {
-      fetchUpgrades(widget.store, "testing", 1, _state.offset);
+      fetchUpgrades(
+          widget.store, _selectedPage.id, _selectedPage.key, _state.offset);
     }
-    widget.store.onChange.listen((state) {
-      String tag = _pages[_controller.index].id;
-      UpgradeState _state = state.getState(upgradekey)[tag];
+    _subscription = widget.store.onChange.listen((state) {
+      UpgradeState _state = _upgradeStates[_selectedPage.id];
       if (!_state.nomore && _state.data.length == 0 && !_state.loading) {
-        fetchUpgrades(widget.store, tag, 1, _state.offset);
+        fetchUpgrades(
+            widget.store, _selectedPage.id, _selectedPage.key, _state.offset);
       } else {
         setState(() {}); // just notify interface to refresh
       }
@@ -90,6 +93,7 @@ class _UpgradesPageState extends State<UpgradesPage>
   @override
   void dispose() {
     _controller.dispose();
+    _subscription.cancel();
     super.dispose();
   }
 
@@ -162,7 +166,7 @@ class _UpgradesPageState extends State<UpgradesPage>
         centerTitle: true,
         bottom: new TabBar(
           controller: _controller,
-          isScrollable: false,
+          isScrollable: true,
           tabs: _pages.map((_Page page) => new Tab(text: page.text)).toList(),
         ),
       ),
