@@ -3,7 +3,7 @@ import "dart:convert";
 import 'package:http/http.dart' as http;
 import 'package:adminclient/model/session.dart';
 
-const server = "http://59.110.16.108:8888/";
+const server = "http://boxota.fengchaohuzhu.com:8888/";
 
 class TokenException implements Exception {
   String _message;
