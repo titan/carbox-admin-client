@@ -6,16 +6,6 @@ import 'package:adminclient/api/defination.dart';
 import 'package:adminclient/model/upgrade.dart';
 import 'package:adminclient/model/session.dart';
 
-class PostException implements Exception {
-  String _message;
-
-  PostException(this._message);
-
-  String toString() {
-    return "Exception: $_message";
-  }
-}
-
 Future<CollectionResponse> fetchUpgrades(
     {Session session, int state, int offset = 0, int limit = 20}) {
   var client = createHttpClient();

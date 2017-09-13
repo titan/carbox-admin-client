@@ -1,12 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:redux/redux.dart';
 import 'package:adminclient/store/store.dart';
+import 'package:adminclient/module/device.dart';
 import 'package:adminclient/module/devices.dart';
 import 'package:adminclient/module/home.dart';
 import 'package:adminclient/module/launcher.dart';
 import 'package:adminclient/module/signin.dart';
-import 'package:adminclient/module/deviceDetail.dart';
-import 'package:adminclient/module/devicePost.dart';
 import 'package:adminclient/module/upgrade.dart';
 import 'package:adminclient/module/upgrades.dart';
 
@@ -55,10 +54,8 @@ class _AppState extends State<AppWidget> {
             new SignInPage(title: '用户登录', store: store),
         '/devices': (BuildContext context) =>
             new DevicesPage(title: '设备管理', store: store),
-        '/deviceDetail': (BuildContext context) =>
-            new DeviceDetailPage(title: '设备信息', store: store),
-        '/devicePost': (BuildContext context) =>
-            new DevicePostPage(title: '设备注册', store: store),
+        '/device': (BuildContext context) =>
+            new DevicePage(title: '设备信息', store: store),
         '/upgrades': (BuildContext context) =>
             new UpgradesPage(title: '升级管理', store: store),
         '/upgrade': (BuildContext context) =>

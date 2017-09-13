@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:redux/redux.dart';
 import 'package:adminclient/model/device.dart';
@@ -20,43 +21,130 @@ class _Page {
   final String id;
 }
 
+List<_Page> _pages = <_Page>[
+  new _Page(text: '未注册', id: "unregistered"),
+  new _Page(text: '已注册', id: "registered"),
+];
+
 class _DevicesPageState extends State<DevicesPage>
     with SingleTickerProviderStateMixin {
+  _Page _selectedPage = _pages[0];
+  TabController _controller;
+  Map<String, DeviceState> _deviceStates;
+  final ScrollController _scrollController = new ScrollController();
+  StreamSubscription _subscription;
+
   final TextEditingController _inputController = new TextEditingController();
 
-  void _handleSubmitted(BuildContext context) {
+  void _handleSubmitted() {
     fetchUnregisteredDevices(widget.store, _inputController.text, 0);
   }
 
-  void _saveSelectDevice(BuildContext context, Device device) {
-    selectReigsteredDevice(widget.store, device);
+  void _handleTabSelection() {
+    setState(() {
+      _selectedPage = _pages[_controller.index];
+      DeviceState _state = _deviceStates[_selectedPage.id];
+      if (!_state.nomore && _state.data.length == 0) {
+        if (_selectedPage.id == "unregistered") {
+          fetchUnregisteredDevices(
+              widget.store, _inputController.text, _state.offset);
+        } else {
+          fetchRegisteredDevices(widget.store, _state.offset);
+        }
+      }
+    });
   }
 
-  TabController _controller;
+  bool _handleScrollNotification(ScrollNotification notification) {
+    if (notification.depth == 0 && notification is OverscrollNotification) {
+      if (notification.overscroll > 0) {
+        // got to the end of scrollable
+        UpgradeState _state = _upgradeStates[_selectedPage.id];
+        if (!_state.nomore) {
+          if (_selectedPage.id == "unregistered") {
+            fetchUnregisteredDevices(
+                widget.store, _inputController.text, _state.offset);
+          } else {
+            fetchRegisteredDevices(widget.store, _state.offset);
+          }
+        }
+      }
+    }
+  }
 
   @override
   void initState() {
-    Map<String, DeviceState> _states = widget.store.state.getState(devicekey);
-    _controller = new TabController(vsync: this, length: _allPages.length);
     super.initState();
-    DeviceState _unregisterState = _states["unregistered"];
-    if (!_unregisterState.nomore && _unregisterState.data.length == 0) {
-      fetchUnregisteredDevices(widget.store, "", _unregisterState.offset);
+    _deviceStates = widget.store.state.getState(devicekey);
+    _controller = new TabController(
+      vsync: this,
+      length: _pages.length,
+    );
+    _controller.addListener(_handleTabSelection);
+    DeviceState _state = _deviceStates[_selectedPage.id];
+    if (!_state.nomore && _state.data.length == 0) {
+      if (_selectedPage.id == "unregistered") {
+        fetchUnregisteredDevices(
+            widget.store, _inputController.text, _state.offset);
+      } else {
+        fetchRegisteredDevices(widget.store, _state.offset);
+      }
     }
-    DeviceState _registerState = _states["registered"];
-    if (!_registerState.nomore && _registerState.data.length == 0) {
-      getReigsteredDevices(widget.store, _registerState.offset);
-    }
+    _subscription = widget.store.onChange.listen((state) {
+      DeviceState _state = _deviceStates[_selectedPage.id];
+      if (!_state.nomore && _state.data.length == 0 && !_state.loading) {
+        if (_selectedPage.id == "unregistered") {
+          fetchUnregisteredDevices(
+              widget.store, _inputController.text, _state.offset);
+        } else {
+          fetchRegisteredDevices(widget.store, _state.offset);
+        }
+      } else {
+        setState(() {}); // just notify interface to refresh
+      }
+    });
   }
 
-  final List<_Page> _allPages = <_Page>[
-    new _Page(text: '未注册', id: "unregistered"),
-    new _Page(text: '已注册', id: "registered"),
-  ];
   @override
   void dispose() {
     _controller.dispose();
+    _subscription.cancel();
     super.dispose();
+  }
+
+  Widget buildItem(final ThemeData theme, final _Page page,
+      final DeviceState state, final Device device) {
+    return new ListTile(
+      title: new Text("mac地址: " + device.mac),
+      subtitle: new Text(page.id == "unregistered"
+          ? "pin码: " + device.pin
+          : "地址：" + device.address),
+      onTap: () {
+        if (page.id == "registered") {
+          selectRegisteredDevice(widget.store, device);
+          Navigator.pushNamed(context, "/device");
+        } else if (page.id == "unregistered") {
+          selectUnregisteredDevice(widget.store, device);
+          Navigator.pushNamed(context, "/device");
+        }
+      },
+    );
+  }
+
+  List<Widget> fillListView(
+      final ThemeData theme, final _Page page, final DeviceState state) {
+    List<Widget> items =
+        state.data.map((x) => buildItem(theme, page, state, x)).toList();
+    if (state.loading) {
+      items.add(new Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: <Widget>[
+          new CircularProgressIndicator(),
+          new Text("加载中..."),
+        ],
+      ));
+    }
+    return items;
   }
 
   @override
@@ -64,72 +152,60 @@ class _DevicesPageState extends State<DevicesPage>
     final ThemeData theme = Theme.of(context);
     return new Scaffold(
       appBar: new AppBar(
-          title: new Text(widget.title),
-          centerTitle: true,
-          bottom: new TabBar(
-            // 控件的选择和动画状态
-            // 标签栏是否可以水平滚动
-            controller: _controller,
-            isScrollable: true,
-            // 标签控件的列表
-            tabs: _allPages
-                .map((_Page page) => new Tab(text: page.text))
-                .toList(),
-          )),
-      body: new Container(
-          child: new Column(
-        children: <Widget>[
-          new Row(
-            children: <Widget>[
-              new Expanded(
-                child: new TextField(
-                  controller: _inputController,
-                  decoration: new InputDecoration(hintText: "输入 PIN 码"),
-                ),
-              ),
-              new RaisedButton(
-                onPressed: () {
-                  _handleSubmitted(context);
-                },
-                child: new Text("搜索"),
-              ),
-            ],
-          ),
-          new Expanded(
-            child: new TabBarView(
-                controller: _controller,
-                children: _allPages.map((_Page page) {
-                  return new ListView(
-                    children: widget.store.state
-                        .getState(devicekey)[page.id]
-                        .data
-                        .map((Device device) {
-                      return new Container(
-                        padding: const EdgeInsets.only(top: 0.0),
-                        child: new ListTile(
-                          leading: const Icon(Icons.mode_edit),
-                          title: new Text("mac地址: " + device.mac),
-                          subtitle: new Text(page.id == "unregistered"
-                              ? "pin码: " + device.pin
-                              : "地址：" + device.address),
-                          onTap: () {
-                            if (page.id == "registered") {
-                              _saveSelectDevice(context, device);
-                              Navigator.pushNamed(context, "/deviceDetail");
-                            } else if (page.id == "unregistered") {
-                              _saveSelectDevice(context, device);
-                              Navigator.pushNamed(context, "/devicePost");
-                            }
-                          },
+        title: new Text(widget.title),
+        centerTitle: true,
+        bottom: new TabBar(
+          controller: _controller,
+          isScrollable: true,
+          tabs: _pages.map((_Page page) => new Tab(text: page.text)).toList(),
+        ),
+      ),
+      body: new TabBarView(
+          controller: _controller,
+          children: _pages.map((_Page _page) {
+            DeviceState _state = _deviceStates[_page.id];
+            return _page.id == "unregistered"
+                ? (_state.error != null
+                    ? new Center(child: new Text(_state.error.toString()))
+                    : new Column(
+                        children: [
+                          new Row(
+                            children: <Widget>[
+                              new Expanded(
+                                child: new TextField(
+                                  controller: _inputController,
+                                  decoration: new InputDecoration(
+                                    hintText: "输入 PIN 码",
+                                  ),
+                                ),
+                              ),
+                              new RaisedButton(
+                                onPressed: () {
+                                  _handleSubmitted();
+                                },
+                                child: new Text("搜索"),
+                              ),
+                            ],
+                          ),
+                          new Expanded(
+                            child: new NotificationListener<ScrollNotification>(
+                              onNotification: _handleScrollNotification,
+                              child: new ListView(
+                                children: fillListView(theme, _page, _state),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ))
+                : (_state.error != null
+                    ? new Center(child: new Text(_state.error.toString()))
+                    : new NotificationListener<ScrollNotification>(
+                        onNotification: _handleScrollNotification,
+                        child: new ListView(
+                          children: fillListView(theme, _page, _state),
                         ),
-                        height: 50.0,
-                      );
-                    }).toList(),
-                  );
-                }).toList()),
-          ),
-        ],
-      )),
+                      ));
+          }).toList()),
     );
   }
 }

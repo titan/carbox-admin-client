@@ -20,11 +20,10 @@ http.Response checkStatus(http.Response response) {
   if (status > 199 && status < 300) {
     return response;
   } else {
-    if (status == 401) {
-      throw new TokenException(response.body);
-    } else if (status == 403) {
+    if (status == 401 || status == 403) {
       throw new TokenException(response.body);
     } else {
+      print("http status is $status");
       throw new http.ClientException(response.body);
     }
   }

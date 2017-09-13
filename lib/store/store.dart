@@ -31,9 +31,10 @@ Store createStore() {
   final state = new AppState();
   final epicMiddleware = new EpicMiddleware(combineEpics<AppState>(<Epic<AppState>>[
     sessionEpic,
-    deviceEpic,
-    getDeviceEpic,
-    postDeviceEpic,
+    fetchUnregisteredDeviceEpic,
+    fetchRegisteredDeviceEpic,
+    registerDeviceEpic,
+    modifyDeviceEpic,
     createUpgradeEpic,
     fetchUpgradeEpic,
     fetchUpgradesEpic,
@@ -48,7 +49,6 @@ Store createStore() {
     "selected": new DeviceState(),
     "unregistered": new DeviceState(),
     "registered": new DeviceState(),
-    "postunregistered": new DeviceState(),
   });
   reducer.putReducer(upgradekey, new UpgradeReducer());
   state.putState(upgradekey, {

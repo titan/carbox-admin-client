@@ -5,16 +5,6 @@ import 'package:adminclient/api/defination.dart';
 import 'package:adminclient/model/device.dart';
 import 'package:adminclient/model/session.dart';
 
-class PostException implements Exception {
-  String _message;
-
-  PostException(this._message);
-
-  String toString() {
-    return "Exception: $_message";
-  }
-}
-
 Future<CollectionResponse> fetchUnregisteredDevices(
     {Session session, String pin = "", int offset = 0, int limit = 20}) {
   var client = createHttpClient();
@@ -31,16 +21,6 @@ Future<CollectionResponse> fetchUnregisteredDevices(
       Device device = new Device();
       device.mac = d["mac"];
       device.pin = d["pin"];
-      /*
-      device.address = d["address"];
-      device.androidBoard = d["android-board"];
-      device.lockBoard = d["lock-board"];
-      device.lockAmount = d["lock-amount"];
-      device.wireless = d["wireless"];
-      device.antenna = d["antenna"];
-      device.cardReader = d["cardReader"];
-      device.speaker = d["speaker"];
-      */
       collections.data.add(device);
     }
     return collections;
@@ -81,40 +61,102 @@ Future<CollectionResponse> fetchRegisteredDevices({
   }).whenComplete(client.close);
 }
 
-Future postUnreigsteredDevice(
-    {Session session,
-    String mac,
-    String pin,
-    String address,
-    int systemBoard,
-    int lockBoard,
-    int lockAmount,
-    int wireless,
-    int antenna,
-    int cardReader,
-    int speaker,
-    int simNo,
-    int routerBoard}) {
+Future reigsterDevice({
+  Session session,
+  String mac,
+  String pin,
+  String address,
+  int systemBoard,
+  int lockBoard,
+  int lockAmount,
+  int wireless,
+  int antenna,
+  int cardReader,
+  int speaker,
+  int simNo,
+  int routerBoard,
+}) {
   var client = createHttpClient();
   var body = {
+    "pin": pin,
     "router-board": routerBoard,
     "antenna": antenna,
-    "mac": "$mac",
+    "mac": mac,
     "system-board": systemBoard,
     "lock-amount": lockAmount,
     "wireless": wireless,
     "speaker": speaker,
     "sim-no": simNo,
-    "address": "$address",
+    "address": address,
     "lock-board": lockBoard,
-    "card-reader": cardReader
+    "card-reader": cardReader,
   };
   return checkSessionThenPost(
           session, client, "${server}devices", JSON.encode(body))
       .then(checkStatus)
       .then(parseJsonMap)
       .then((Map json) {
-    var data = json;
-    return data;
+    Device device = new Device();
+    device.mac = json["mac"];
+    device.simNo = json["sim-no"];
+    device.speaker = json["speaker"];
+    device.antenna = json["antenna"];
+    device.address = json["address"];
+    device.wireless = json["wireless"];
+    device.lockBoard = json["lock-board"];
+    device.cardReader = json["card-reader"];
+    device.lockAmount = json["lock-amount"];
+    device.systemBoard = json["system-board"];
+    device.routerBoard = json["router-board"];
+    return device;
+  }).whenComplete(client.close);
+}
+
+Future modifyDevice({
+  Session session,
+  String mac,
+  String address,
+  int systemBoard,
+  int lockBoard,
+  int lockAmount,
+  int wireless,
+  int antenna,
+  int cardReader,
+  int speaker,
+  int simNo,
+  int routerBoard,
+}) {
+  var client = createHttpClient();
+  var body = {
+    "router-board": routerBoard,
+    "antenna": antenna,
+    "mac": mac,
+    "system-board": systemBoard,
+    "lock-amount": lockAmount,
+    "wireless": wireless,
+    "speaker": speaker,
+    "sim-no": simNo,
+    "address": address,
+    "lock-board": lockBoard,
+    "card-reader": cardReader,
+  };
+  return checkSessionThenPut(
+          session, client, "${server}devices/${mac}", JSON.encode(body))
+      .then(checkStatus)
+      .then(parseJsonMap)
+      .then((Map json) {
+    Device device = new Device();
+    device.mac = json["mac"];
+    device.simNo = json["sim-no"];
+    device.speaker = json["speaker"];
+    device.antenna = json["antenna"];
+    device.address = json["address"];
+    device.wireless = json["wireless"];
+    device.lockBoard = json["lock-board"];
+    device.cardReader = json["card-reader"];
+    device.lockAmount = json["lock-amount"];
+    device.systemBoard = json["system-board"];
+    device.routerBoard = json["router-board"];
+    return device;
   }).whenComplete(client.close);
 }

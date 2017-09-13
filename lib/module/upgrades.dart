@@ -34,7 +34,6 @@ final List<_Page> _pages = <_Page>[
 
 class _UpgradesPageState extends State<UpgradesPage>
     with SingleTickerProviderStateMixin {
-  bool reload = false;
   TabController _controller;
   final ScrollController _scrollController = new ScrollController();
   _Page _selectedPage = _pages[0];
@@ -95,14 +94,6 @@ class _UpgradesPageState extends State<UpgradesPage>
     _controller.dispose();
     _subscription.cancel();
     super.dispose();
-  }
-
-  Widget popPage() {
-    return new Container(
-      child: const Center(
-        child: const CupertinoActivityIndicator(),
-      ),
-    );
   }
 
   Widget buildItem(

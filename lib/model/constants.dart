@@ -33,7 +33,7 @@ Map<int, String> candidateSpeaker = {
 
 Map<int, String> candidateRouter = {
   0: "无",
-  1: "xxxx",
+  1: "ZBT826",
 };
 
 Map<int, String> candidateUpgradeState = {
