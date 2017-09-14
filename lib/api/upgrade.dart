@@ -114,10 +114,11 @@ Future modifyUpgrade({
     Upgrade upgrade = new Upgrade();
     upgrade.systemBoard = json["system-board"];
     upgrade.url = json["url"];
-    upgrade.lockBoard = json["lock-boadr"];
+    upgrade.lockBoard = json["lock-board"];
     upgrade.version = json["version"];
     upgrade.id = json["id"];
     upgrade.type = json["type"];
+    upgrade.state = json["state"];
     return upgrade;
   }).whenComplete(client.close);
 }

@@ -61,8 +61,18 @@ class UpgradeReducer extends ReducerClass<Map<String, UpgradeState>> {
     String tag = action.payload.tag;
     UpgradeState state = states[tag];
     switch (action.type) {
+      case 'CREATE_UPGRADE_REQUEST':
+      case 'FETCH_UPGRADE_REQUEST':
       case 'FETCH_UPGRADES_REQUEST':
+      case 'MODIFY_UPGRADE_REQUEST':
         state.loading = true;
+        return states;
+      case 'CREATE_UPGRADE_FAILED':
+      case 'FETCH_UPGRADE_FAILED':
+      case 'FETCH_UPGRADES_FAILED':
+      case 'MODIFY_UPGRADE_FAILED':
+        state.loading = false;
+        state.error = action.payload.error;
         return states;
       case 'FETCH_UPGRADES_SUCCESS':
         var response = action.payload.response;
@@ -77,41 +87,6 @@ class UpgradeReducer extends ReducerClass<Map<String, UpgradeState>> {
           state.data.addAll(response.data);
         }
         return states;
-      case 'FETCH_UPGRADES_FAILED':
-        state.loading = false;
-        state.error = action.payload.error;
-        return states;
-      case 'SELECT_UPGRADE':
-        state.selected = action.payload.selected;
-        if (state.selected == null) {
-          state.editing = true;
-          state.error = null;
-        } else {
-          state.editing = false;
-        }
-        return states;
-      case 'EDIT_UPGRADE':
-        state.editing = true;
-        return states;
-      case 'CREATE_UPGRADE_REQUEST':
-        state.loading = true;
-        return states;
-      case 'CREATE_UPGRADE_SUCCESS':
-        <String>["testing"]
-            .forEach((String x) {
-          states[x] = new UpgradeState();
-        });
-        state.loading = false;
-        state.editing = false;
-        state.selected = action.payload.selected;
-        return states;
-      case 'CREATE_UPGRADE_FAILED':
-        state.loading = false;
-        state.error = action.payload.error;
-        return states;
-      case 'FETCH_UPGRADE_REQUEST':
-        state.loading = true;
-        return states;
       case 'FETCH_UPGRADE_SUCCESS':
         var response = action.payload.response;
         state.loading = false;
@@ -125,12 +100,13 @@ class UpgradeReducer extends ReducerClass<Map<String, UpgradeState>> {
           state.data.addAll(response.data);
         }
         return states;
-      case 'FETCH_UPGRADE_FAILED':
+      case 'CREATE_UPGRADE_SUCCESS':
+        <String>["testing"].forEach((String x) {
+          states[x] = new UpgradeState();
+        });
         state.loading = false;
-        state.error = action.payload.error;
-        return states;
-      case 'MODIFY_UPGRADE_REQUEST':
-        state.loading = true;
+        state.editing = false;
+        state.selected = action.payload.selected;
         return states;
       case 'MODIFY_UPGRADE_SUCCESS':
         <String>["testing", "failed", "releasing", "released"]
@@ -139,10 +115,19 @@ class UpgradeReducer extends ReducerClass<Map<String, UpgradeState>> {
         });
         state.loading = false;
         state.editing = false;
+        state.selected = action.payload.selected;
         return states;
-      case 'MODIFY_UPGRADE_FAILED':
-        state.loading = false;
-        state.error = action.payload.error;
+      case 'SELECT_UPGRADE':
+        state.selected = action.payload.selected;
+        if (state.selected == null) {
+          state.editing = true;
+          state.error = null;
+        } else {
+          state.editing = false;
+        }
+        return states;
+      case 'EDIT_UPGRADE':
+        state.editing = true;
         return states;
       case 'DELETE_UPGRADE_REQUEST':
         state.deleting = true;
@@ -150,7 +135,8 @@ class UpgradeReducer extends ReducerClass<Map<String, UpgradeState>> {
         return states;
       case 'DELETE_UPGRADE_SUCCESS':
         state.deleting = false;
-        state.data = state.data.where((x) => x != action.payload.selected).toList();
+        state.data =
+            state.data.where((x) => x != action.payload.selected).toList();
         return states;
       case 'DELETE_UPGRADE_FAILED':
         state.deleting = false;

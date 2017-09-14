@@ -166,9 +166,6 @@ class _UpgradePageState extends State<UpgradePage> {
                   onChanged: (int value) {
                     setState(() {
                       _editable.state = value;
-                      if (_selected != null) {
-                        _selected.state = value;
-                      }
                     });
                   },
                   items: candidateUpgradeState.keys.map((int key) {
@@ -191,9 +188,6 @@ class _UpgradePageState extends State<UpgradePage> {
                   onChanged: (String value) {
                     setState(() {
                       _editable.type = value;
-                      if (_selected != null) {
-                        _selected.type = value;
-                      }
                     });
                   },
                   items: ["boxos", "supervisor"].map((String value) {
@@ -216,9 +210,6 @@ class _UpgradePageState extends State<UpgradePage> {
                   onChanged: (int value) {
                     setState(() {
                       _editable.systemBoard = value;
-                      if (_selected != null) {
-                        _selected.systemBoard = value;
-                      }
                     });
                   },
                   items: candidateSystemBoards.keys.map((int key) {
@@ -241,9 +232,6 @@ class _UpgradePageState extends State<UpgradePage> {
                   onChanged: (int value) {
                     setState(() {
                       _editable.lockBoard = value;
-                      if (_selected != null) {
-                        _selected.lockBoard = value;
-                      }
                     });
                   },
                   items: candidateLockBoards.keys.map((int key) {
@@ -265,9 +253,6 @@ class _UpgradePageState extends State<UpgradePage> {
               keyboardType: TextInputType.url,
               onSaved: (String value) {
                 _editable.url = value;
-                if (_selected != null) {
-                  _selected.url = value;
-                }
               },
             ),
             new TextFormField(
@@ -280,9 +265,6 @@ class _UpgradePageState extends State<UpgradePage> {
               keyboardType: TextInputType.number,
               onSaved: (String value) {
                 _editable.version = int.parse(value);
-                if (_selected != null) {
-                  _selected.version = int.parse(value);
-                }
               },
             ),
             _selectedState.loading
