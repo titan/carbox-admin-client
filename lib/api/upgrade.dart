@@ -42,7 +42,6 @@ Future<CollectionResponse> fetchUpgrade({
 }) {
   var client = createHttpClient();
   return checkSessionThenGet(session, client, "${server}upgrades/${id}")
-      .then(checkStatus)
       .then(parseJsonMap)
       .then((Map json) {
     Upgrade upgrade = new Upgrade();
@@ -68,16 +67,15 @@ Future createUpgrade({
 }) {
   var client = createHttpClient();
   var body = {
-    "system-board": systemBoard,
-    "lock-board": lockBoard,
+    "system-board": systemBoard.toString(),
+    "lock-board": lockBoard.toString(),
     "url": url,
-    "type": type,
-    "version": version,
-    "state": state,
+    "type": type.toString(),
+    "version": version.toString(),
+    "state": state.toString(),
   };
   return checkSessionThenPost(
-          session, client, "${server}upgrades", JSON.encode(body))
-      .then(checkStatus)
+          session, client, "${server}upgrades", body)
       .then(parseJsonMap)
       .then((Map json) {
     Upgrade upgrade = new Upgrade();
@@ -104,17 +102,16 @@ Future modifyUpgrade({
 }) {
   var client = createHttpClient();
   var body = {
-    "system-board": systemBoard,
-    "lock-board": lockBoard,
+    "system-board": systemBoard.toString(),
+    "lock-board": lockBoard.toString(),
     "url": url,
-    "type": type,
-    "id": id,
-    "version": version,
-    "state": state,
+    "type": type.toString(),
+    "id": id.toString(),
+    "version": version.toString(),
+    "state": state.toString(),
   };
   return checkSessionThenPut(
-          session, client, "${server}upgrades/${id}", JSON.encode(body))
-      .then(checkStatus)
+          session, client, "${server}upgrades/${id}", body)
       .then(parseJsonMap)
       .then((Map json) {
     Upgrade upgrade = new Upgrade();
@@ -135,7 +132,6 @@ Future deleteUpgrade({
 }) {
   var client = createHttpClient();
   return checkSessionThenDelete(session, client, "${server}upgrades/${id}")
-      .then(checkStatus)
       .then((http.Response response) {
     return true;
   }).whenComplete(client.close);

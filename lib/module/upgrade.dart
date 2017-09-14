@@ -103,10 +103,11 @@ class _UpgradePageState extends State<UpgradePage> {
     super.initState();
     _syncState();
     _subscription = widget.store.onChange.listen((state) {
-      if (state.error != null &&
-          state.error is TokenException &&
+      UpgradeState _state = state.getState(upgradekey)["selected"];
+      if (_state.error != null &&
+          _state.error is TokenException &&
           !_tokenExceptionReported) {
-        reportInvalidToken(widget.store, state.error);
+        reportInvalidToken(widget.store, _state.error);
         _tokenExceptionReported = true;
         Navigator.of(context).popUntil((route) {
           if (route is MaterialPageRoute && route.settings.name == "/") {

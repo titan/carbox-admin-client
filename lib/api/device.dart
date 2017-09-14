@@ -5,12 +5,15 @@ import 'package:adminclient/api/defination.dart';
 import 'package:adminclient/model/device.dart';
 import 'package:adminclient/model/session.dart';
 
-Future<CollectionResponse> fetchUnregisteredDevices(
-    {Session session, String pin = "", int offset = 0, int limit = 20}) {
+Future<CollectionResponse> fetchUnregisteredDevices({
+  Session session,
+  String pin = "",
+  int offset = 0,
+  int limit = 20,
+}) {
   var client = createHttpClient();
   return checkSessionThenOptions(session, client,
           "${server}devices?query=${pin}&offset=${offset}&limit=${limit}")
-      .then(checkStatus)
       .then(parseJsonMap)
       .then((Map json) {
     CollectionResponse<Device> collections = new CollectionResponse<Device>();
@@ -35,7 +38,6 @@ Future<CollectionResponse> fetchRegisteredDevices({
   var client = createHttpClient();
   return checkSessionThenGet(
           session, client, "${server}devices?offset=${offset}&limit=${limit}")
-      .then(checkStatus)
       .then(parseJsonMap)
       .then((Map json) {
     CollectionResponse<Device> collections = new CollectionResponse<Device>();
@@ -79,21 +81,19 @@ Future reigsterDevice({
   var client = createHttpClient();
   var body = {
     "pin": pin,
-    "router-board": routerBoard,
-    "antenna": antenna,
+    "router-board": routerBoard.toString(),
+    "antenna": antenna.toString(),
     "mac": mac,
-    "system-board": systemBoard,
-    "lock-amount": lockAmount,
-    "wireless": wireless,
-    "speaker": speaker,
-    "sim-no": simNo,
+    "system-board": systemBoard.toString(),
+    "lock-amount": lockAmount.toString(),
+    "wireless": wireless.toString(),
+    "speaker": speaker.toString(),
+    "sim-no": simNo.toString(),
     "address": address,
-    "lock-board": lockBoard,
-    "card-reader": cardReader,
+    "lock-board": lockBoard.toString(),
+    "card-reader": cardReader.toString(),
   };
-  return checkSessionThenPost(
-          session, client, "${server}devices", JSON.encode(body))
-      .then(checkStatus)
+  return checkSessionThenPost(session, client, "${server}devices")
       .then(parseJsonMap)
       .then((Map json) {
     Device device = new Device();
@@ -128,21 +128,19 @@ Future modifyDevice({
 }) {
   var client = createHttpClient();
   var body = {
-    "router-board": routerBoard,
-    "antenna": antenna,
+    "router-board": routerBoard.toString(),
+    "antenna": antenna.toString(),
     "mac": mac,
-    "system-board": systemBoard,
-    "lock-amount": lockAmount,
-    "wireless": wireless,
-    "speaker": speaker,
-    "sim-no": simNo,
+    "system-board": systemBoard.toString(),
+    "lock-amount": lockAmount.toString(),
+    "wireless": wireless.toString(),
+    "speaker": speaker.toString(),
+    "sim-no": simNo.toString(),
     "address": address,
-    "lock-board": lockBoard,
-    "card-reader": cardReader,
+    "lock-board": lockBoard.toString(),
+    "card-reader": cardReader.toString(),
   };
-  return checkSessionThenPut(
-          session, client, "${server}devices/${mac}", JSON.encode(body))
-      .then(checkStatus)
+  return checkSessionThenPut(session, client, "${server}devices/${mac}", body)
       .then(parseJsonMap)
       .then((Map json) {
     Device device = new Device();

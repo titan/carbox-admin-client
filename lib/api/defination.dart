@@ -92,80 +92,54 @@ Future checkSessionThenGet(Session session, http.Client client, String url) {
 }
 
 Future checkSessionThenPost(
-    Session session, http.Client client, String url, String body) {
+    Session session, http.Client client, String url, Map<String, String> body) {
   if ((new DateTime.now().millisecondsSinceEpoch + 300000) <
       session.expires_at.millisecondsSinceEpoch) {
     return client
-        .post(url,
-            headers: {
-              "content-type": "application/json",
-              "Token": session.access_token,
-            },
-            body: body)
+        .post(url, headers: {"Token": session.access_token}, body: body)
         .then(checkStatus)
         .catchError((error) {
       if (error is TokenException) {
         return _refreshToken(session, client, (_session) {
           return client
-              .post(url,
-                  headers: {
-                    "content-type": "application/json",
-                    "Token": session.access_token,
-                  },
-                  body: body)
+              .post(url, headers: {"Token": session.access_token}, body: body)
               .then(checkStatus);
         });
+      } else {
+        throw error;
       }
     });
   } else {
     return _refreshToken(session, client, (_session) {
       return client
-          .post(url,
-              headers: {
-                "content-type": "application/json",
-                "Token": session.access_token,
-              },
-              body: body)
+          .post(url, headers: {"Token": session.access_token}, body: body)
           .then(checkStatus);
     });
   }
 }
 
 Future checkSessionThenPut(
-    Session session, http.Client client, String url, String body) {
+    Session session, http.Client client, String url, Map<String, String> body) {
   if ((new DateTime.now().millisecondsSinceEpoch + 300000) <
       session.expires_at.millisecondsSinceEpoch) {
     return client
-        .put(url,
-            headers: {
-              "content-type": "application/json",
-              "Token": session.access_token,
-            },
-            body: body)
+        .put(url, headers: {"Token": session.access_token}, body: body)
         .then(checkStatus)
         .catchError((error) {
       if (error is TokenException) {
         return _refreshToken(session, client, (_session) {
           return client
-              .put(url,
-                  headers: {
-                    "content-type": "application/json",
-                    "Token": session.access_token,
-                  },
-                  body: body)
+              .put(url, headers: {"Token": session.access_token}, body: body)
               .then(checkStatus);
         });
+      } else {
+        throw error;
       }
     });
   } else {
     return _refreshToken(session, client, (_session) {
       return client
-          .put(url,
-              headers: {
-                "content-type": "application/json",
-                "Token": session.access_token,
-              },
-              body: body)
+          .put(url, headers: {"Token": session.access_token}, body: body)
           .then(checkStatus);
     });
   }
@@ -215,6 +189,8 @@ Future checkSessionThenDelete(Session session, http.Client client, String url) {
               return client.delete(url,
                   headers: {"Token": session.access_token}).then(checkStatus);
             });
+          } else {
+            throw error;
           }
         });
   } else {

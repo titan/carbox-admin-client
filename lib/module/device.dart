@@ -127,10 +127,11 @@ class _DevicePageState extends State<DevicePage> {
     super.initState();
     _syncState();
     _subscription = widget.store.onChange.listen((state) {
-      if (state.error != null &&
-          state.error is TokenException &&
+      DeviceState _state = state.getState(devicekey)["selected"];
+      if (_state.error != null &&
+          _state.error is TokenException &&
           !_tokenExceptionReported) {
-        reportInvalidToken(widget.store, state.error);
+        reportInvalidToken(widget.store, _state.error);
         _tokenExceptionReported = true;
         Navigator.of(context).popUntil((route) {
           if (route is MaterialPageRoute && route.settings.name == "/") {
