@@ -107,8 +107,8 @@ class _UpgradesPageState extends State<UpgradesPage>
             ],
           )
         : new ListTile(
-            title: new Text(upgrade.type),
-            subtitle: new Text('版本: ${upgrade.version}'),
+            title: new Text('${upgrade.type} 版本: ${upgrade.version}'),
+            subtitle: new Text(upgrade.url),
             trailing: !state.deletable
                 ? null
                 : new IconButton(
