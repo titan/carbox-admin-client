@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:redux/redux.dart';
+import 'package:adminclient/api/defination.dart';
 import 'package:adminclient/model/device.dart';
 import 'package:adminclient/store/device.dart';
 
@@ -33,6 +34,7 @@ class _DevicesPageState extends State<DevicesPage>
   Map<String, DeviceState> _deviceStates;
   final ScrollController _scrollController = new ScrollController();
   StreamSubscription _subscription;
+  bool _tokenExceptionReported = false;
 
   final TextEditingController _inputController = new TextEditingController();
 
@@ -92,15 +94,29 @@ class _DevicesPageState extends State<DevicesPage>
     }
     _subscription = widget.store.onChange.listen((state) {
       DeviceState _state = _deviceStates[_selectedPage.id];
-      if (!_state.nomore && _state.data.length == 0 && !_state.loading) {
-        if (_selectedPage.id == "unregistered") {
-          fetchUnregisteredDevices(
-              widget.store, _inputController.text, _state.offset);
-        } else {
-          fetchRegisteredDevices(widget.store, _state.offset);
-        }
+      if (_state.error != null &&
+          _state.error is TokenException &&
+          !_tokenExceptionReported) {
+        reportInvalidToken(widget.store, _state.error);
+        _tokenExceptionReported = true;
+        Navigator.of(context).popUntil((route) {
+          if (route is MaterialPageRoute && route.settings.name == "/") {
+            return true;
+          }
+          return false;
+        });
       } else {
-        setState(() {}); // just notify interface to refresh
+        _tokenExceptionReported = false;
+        if (!_state.nomore && _state.data.length == 0 && !_state.loading) {
+          if (_selectedPage.id == "unregistered") {
+            fetchUnregisteredDevices(
+                widget.store, _inputController.text, _state.offset);
+          } else {
+            fetchRegisteredDevices(widget.store, _state.offset);
+          }
+        } else {
+          setState(() {}); // just notify interface to refresh
+        }
       }
     });
   }

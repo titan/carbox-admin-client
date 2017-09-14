@@ -1,8 +1,11 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:redux/redux.dart';
+import 'package:adminclient/api/defination.dart';
 import 'package:adminclient/model/constants.dart';
 import 'package:adminclient/model/upgrade.dart';
 import 'package:adminclient/module/keyvalue.dart';
+import 'package:adminclient/store/session.dart';
 import 'package:adminclient/store/upgrade.dart';
 
 class UpgradePage extends StatefulWidget {
@@ -22,6 +25,8 @@ class _UpgradePageState extends State<UpgradePage> {
       new TextEditingController();
   bool _autovalidate = false;
   GlobalKey<FormState> _formKey = new GlobalKey<FormState>();
+  StreamSubscription _subscription;
+  bool _tokenExceptionReported = false;
 
   String _validateUrl(String value) {
     if (value.isEmpty) return '请填写下载链接';
@@ -97,14 +102,29 @@ class _UpgradePageState extends State<UpgradePage> {
   void initState() {
     super.initState();
     _syncState();
-    widget.store.onChange.listen((state) {
-      _syncState();
+    _subscription = widget.store.onChange.listen((state) {
+      if (state.error != null &&
+          state.error is TokenException &&
+          !_tokenExceptionReported) {
+        reportInvalidToken(widget.store, state.error);
+        _tokenExceptionReported = true;
+        Navigator.of(context).popUntil((route) {
+          if (route is MaterialPageRoute && route.settings.name == "/") {
+            return true;
+          }
+          return false;
+        });
+      } else {
+        _tokenExceptionReported = false;
+        _syncState();
+      }
     });
   }
 
   @override
   void dispose() {
     super.dispose();
+    _subscription.cancel();
   }
 
   @override

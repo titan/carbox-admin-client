@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:redux/redux.dart';
 import 'package:adminclient/store/store.dart';
@@ -17,11 +18,12 @@ class LauncherPage extends StatefulWidget {
 
 class _LauncherPageState extends State<LauncherPage> {
   bool _logined = false;
+  StreamSubscription _subscription;
 
   @override
   void initState() {
     super.initState();
-    widget.store.onChange.listen((state) {
+    _subscription = widget.store.onChange.listen((state) {
       if (state.getState(sessionkey).session != null &&
           state.getState(sessionkey).session.access_token != null) {
         setState(() {
@@ -38,6 +40,7 @@ class _LauncherPageState extends State<LauncherPage> {
   @override
   void dispose() {
     super.dispose();
+    _subscription.cancel();
   }
 
   @override
