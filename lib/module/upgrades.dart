@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:redux/redux.dart';
+import 'package:adminclient/api/defination.dart';
 import 'package:adminclient/model/constants.dart';
 import 'package:adminclient/model/upgrade.dart';
 import 'package:adminclient/store/upgrade.dart';
@@ -80,11 +81,20 @@ class _UpgradesPageState extends State<UpgradesPage>
     }
     _subscription = widget.store.onChange.listen((state) {
       UpgradeState _state = _upgradeStates[_selectedPage.id];
-      if (!_state.nomore && _state.data.length == 0 && !_state.loading) {
-        fetchUpgrades(
-            widget.store, _selectedPage.id, _selectedPage.key, _state.offset);
+      if (_state.error != null && _state.error is TokenException) {
+        Navigator.of(context).popUntil((route) {
+          if (route is MaterialPageRoute && route.settings.name == "/") {
+            return true;
+          }
+          return false;
+        });
       } else {
-        setState(() {}); // just notify interface to refresh
+        if (!_state.nomore && _state.data.length == 0 && !_state.loading) {
+          fetchUpgrades(
+              widget.store, _selectedPage.id, _selectedPage.key, _state.offset);
+        } else {
+          setState(() {}); // just notify interface to refresh
+        }
       }
     });
   }

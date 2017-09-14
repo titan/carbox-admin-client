@@ -176,6 +176,7 @@ Stream<Action> fetchUpgradesEpic(
                     error: false,
                   ))
               .catchError((error) {
+            print(error);
             if (error is Error) {
               print(error.stackTrace);
             }
@@ -212,6 +213,7 @@ Stream<Action> fetchUpgradeEpic(
                     error: false,
                   ))
               .catchError((error) {
+            print(error);
             if (error is Error) {
               print(error.stackTrace);
             }
@@ -290,6 +292,7 @@ Stream<Action> createUpgradeEpic(
                     error: false,
                   ))
               .catchError((error) {
+            print(error);
             if (error is Error) {
               print(error.stackTrace);
             }

@@ -48,10 +48,6 @@ class _AppState extends State<AppWidget> {
       //home: new LauncherPage(title: 'Launcher', store: store),
       routes: <String, WidgetBuilder>{
         '/': (BuildContext context) => new LauncherPage(store: store),
-        '/home': (BuildContext context) =>
-            new HomePage(title: '主页', store: store),
-        '/signin': (BuildContext context) =>
-            new SignInPage(title: '用户登录', store: store),
         '/devices': (BuildContext context) =>
             new DevicesPage(title: '设备管理', store: store),
         '/device': (BuildContext context) =>

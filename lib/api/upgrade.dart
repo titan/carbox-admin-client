@@ -6,12 +6,15 @@ import 'package:adminclient/api/defination.dart';
 import 'package:adminclient/model/upgrade.dart';
 import 'package:adminclient/model/session.dart';
 
-Future<CollectionResponse> fetchUpgrades(
-    {Session session, int state, int offset = 0, int limit = 20}) {
+Future<CollectionResponse> fetchUpgrades({
+  Session session,
+  int state,
+  int offset = 0,
+  int limit = 20,
+}) {
   var client = createHttpClient();
-  return checkSessionThenOptions(session, client,
+  return checkSessionThenGet(session, client,
           "${server}upgrades?state=${state}offset=${offset}&limit=${limit}")
-      .then(checkStatus)
       .then(parseJsonMap)
       .then((Map json) {
     CollectionResponse<Upgrade> collections = new CollectionResponse<Upgrade>();
@@ -33,9 +36,12 @@ Future<CollectionResponse> fetchUpgrades(
   }).whenComplete(client.close);
 }
 
-Future<CollectionResponse> fetchUpgrade({Session session, int id}) {
+Future<CollectionResponse> fetchUpgrade({
+  Session session,
+  int id,
+}) {
   var client = createHttpClient();
-  return checkSessionThenOptions(session, client, "${server}upgrades/${id}")
+  return checkSessionThenGet(session, client, "${server}upgrades/${id}")
       .then(checkStatus)
       .then(parseJsonMap)
       .then((Map json) {
