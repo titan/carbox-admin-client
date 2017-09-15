@@ -103,9 +103,31 @@ class DeviceReducer extends ReducerClass<Map<String, DeviceState>> {
       case 'EDIT_DEVICE':
         state.editing = true;
         return states;
-      case 'REGISTER_DEVICE_SUCCESS':
       case 'MODIFY_DEVICE_SUCCESS':
-        states["unregistered"] = new DeviceState();
+        List rows = states["registered"].data;
+        for (int i = 0; i < rows.length; i ++) {
+          if (rows[i].mac == action.payload.selected.mac) {
+            rows[i] = action.payload.selected;
+            break;
+          }
+        }
+        state.loading = false;
+        state.editing = false;
+        state.selected = action.payload.selected;
+        return states;
+      case 'REGISTER_DEVICE_SUCCESS':
+        List rows = states["unregistered"].data;
+        for (int i = 0; i < rows.length; i ++) {
+          if (rows[i].mac == action.payload.selected.mac) {
+            rows.removeAt(i);
+            if (states["regiestered"] != null && states["registered"].data.length > 0) {
+              states["registered"].data.add(action.payload.selected);
+            } else {
+              states["registered"] = new DeviceState();
+            }
+            break;
+          }
+        }
         state.loading = false;
         state.editing = false;
         state.selected = action.payload.selected;
@@ -202,7 +224,7 @@ Stream<Action> registerDeviceEpic(
           action is DeviceAction && action.type == 'REGISTER_DEVICE_REQUEST')
       .map((action) => (action as DeviceAction).payload)
       .asyncMap((payload) => api
-              .reigsterDevice(
+              .registerDevice(
                 session: store.state.getState(sessionkey).session,
                 mac: payload.selected.mac,
                 address: payload.selected.address,
@@ -214,7 +236,7 @@ Stream<Action> registerDeviceEpic(
                 antenna: payload.selected.antenna,
                 cardReader: payload.selected.cardReader,
                 speaker: payload.selected.speaker,
-                simNo: payload.selected.simNo,
+                simNo: payload.selected.simNo ?? 0,
                 routerBoard: payload.selected.routerBoard,
               )
               .then((Device device) => new DeviceAction(

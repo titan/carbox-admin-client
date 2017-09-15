@@ -63,7 +63,7 @@ Future<CollectionResponse> fetchRegisteredDevices({
   }).whenComplete(client.close);
 }
 
-Future reigsterDevice({
+Future registerDevice({
   Session session,
   String mac,
   String pin,
@@ -93,7 +93,7 @@ Future reigsterDevice({
     "lock-board": lockBoard.toString(),
     "card-reader": cardReader.toString(),
   };
-  return checkSessionThenPost(session, client, "${server}devices")
+  return checkSessionThenPost(session, client, "${server}devices", body)
       .then(parseJsonMap)
       .then((Map json) {
     Device device = new Device();

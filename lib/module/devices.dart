@@ -61,7 +61,7 @@ class _DevicesPageState extends State<DevicesPage>
     if (notification.depth == 0 && notification is OverscrollNotification) {
       if (notification.overscroll > 0) {
         // got to the end of scrollable
-        UpgradeState _state = _upgradeStates[_selectedPage.id];
+        DeviceState _state = _deviceStates[_selectedPage.id];
         if (!_state.nomore) {
           if (_selectedPage.id == "unregistered") {
             fetchUnregisteredDevices(

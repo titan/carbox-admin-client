@@ -45,8 +45,8 @@ class _DevicePageState extends State<DevicePage> {
 
   String _validateSim(String value) {
     if (value.isEmpty) return '请填写SIM卡号';
-    RegExp amountExp = new RegExp(r'^[1-9][0-9]*$');
-    if (!amountExp.hasMatch(value)) return '请填写正确的SIM卡号';
+    RegExp phoneExp = new RegExp(r'^[1-9][0-9]*$');
+    if (!phoneExp.hasMatch(value)) return '请填写正确的SIM卡号';
     if (value.length != 11) return '请填写正确的SIM卡号';
     return null;
   }
@@ -58,7 +58,7 @@ class _DevicePageState extends State<DevicePage> {
       _autovalidate = true;
     } else {
       _form.save();
-      if (_state.selected == null) {
+      if (_state.selected.address == null) {
         registerDevice(widget.store, _editable);
       } else {
         if (_selected.mac == _editable.mac &&
@@ -282,7 +282,7 @@ class _DevicePageState extends State<DevicePage> {
               validator: _validateAmount,
               keyboardType: TextInputType.number,
               onSaved: (String value) {
-                _editable.lockAmount = int.parse(value);
+                _editable.lockAmount = value == "" ? 0 : int.parse(value);
               },
             ),
             new Row(
@@ -404,7 +404,7 @@ class _DevicePageState extends State<DevicePage> {
               validator: _validateSim,
               keyboardType: TextInputType.phone,
               onSaved: (String value) {
-                _editable.simNo = int.parse(value);
+                _editable.simNo = value == "" ? 0 : int.parse(value);
               },
             ),
             _selectedState.loading
