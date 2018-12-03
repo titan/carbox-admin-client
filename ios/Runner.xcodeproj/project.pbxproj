@@ -425,7 +425,7 @@
 					"$(inherited)",
 					"$(PROJECT_DIR)/Flutter",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = com.fengchaohuzhu.box.adminclient;
+				PRODUCT_BUNDLE_IDENTIFIER = box.adminclient;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Debug;
@@ -447,7 +447,7 @@
 					"$(inherited)",
 					"$(PROJECT_DIR)/Flutter",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = com.fengchaohuzhu.box.adminclient;
+				PRODUCT_BUNDLE_IDENTIFIER = box.adminclient;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Release;
